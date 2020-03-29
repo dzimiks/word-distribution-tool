@@ -8,6 +8,7 @@ public final class Constants {
 	public static final String PROJECT_NAME = "Word distribution tool";
 	public static final int SCREEN_SIZE_WIDTH = 1920;
 	public static final int SCREEN_SIZE_HEIGHT = 1080;
+	public static final int DEFAULT_PADDING = 10;
 
 	/**
 	 * Config

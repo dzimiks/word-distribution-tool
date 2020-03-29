@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import src.main.Main;
+import src.utils.Constants;
 
 import java.io.File;
 import java.util.NoSuchElementException;
@@ -31,16 +32,13 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		crunchersList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
 		ComboBox<String> cbCruncherNames = new ComboBox<>();
-		cbCruncherNames.getItems().add("File 1");
-		cbCruncherNames.getItems().add("File 2");
-		cbCruncherNames.getSelectionModel().select(0);
 
 		Button btnLinkCruncher = new Button("Link Cruncher");
 		Button btnUnlinkCruncher = new Button("Unlink Cruncher");
 		btnUnlinkCruncher.setDisable(true);
 
 		HBox hbFileInputRow = new HBox();
-		hbFileInputRow.setSpacing(10);
+		hbFileInputRow.setSpacing(Constants.DEFAULT_PADDING);
 		hbFileInputRow.getChildren().addAll(btnLinkCruncher, btnUnlinkCruncher);
 
 		// Directories
@@ -61,12 +59,12 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		Button btnStart = new Button("Start");
 
 		HBox hbDirsFirstRow = new HBox();
-		hbDirsFirstRow.setSpacing(10);
+		hbDirsFirstRow.setSpacing(Constants.DEFAULT_PADDING);
 		hbDirsFirstRow.getChildren().add(btnAddDirectory);
 		hbDirsFirstRow.getChildren().add(btnRemoveDirectory);
 
 		HBox hbDirsSecondRow = new HBox();
-		hbDirsSecondRow.setSpacing(10);
+		hbDirsSecondRow.setSpacing(Constants.DEFAULT_PADDING);
 		hbDirsSecondRow.getChildren().add(btnRemoveDiskInput);
 		hbDirsSecondRow.getChildren().add(btnStart);
 
@@ -130,6 +128,8 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 				}
 			}
 		});
+
+		app.getAllCrunchersList().add(cbCruncherNames);
 
 		// Crunchers
 		app.getvBoxFileInput().getChildren().add(lblFileInput);

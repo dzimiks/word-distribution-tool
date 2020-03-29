@@ -18,9 +18,7 @@ import src.utils.Constants;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 public class Main extends Application {
 
@@ -45,6 +43,8 @@ public class Main extends Application {
 	private Data<Number, Number>[] data;
 	private NumberAxis xAxis;
 	private NumberAxis yAxis;
+
+	private List<ComboBox<String>> allCrunchersList;
 
 	// Left view
 	private Label lblFileInput;
@@ -75,6 +75,7 @@ public class Main extends Application {
 	// Crunchers
 	private Label crunchersLabel;
 	private Button addCruncherButton;
+	private int cruncherNameCounter;
 
 	private BorderPane mainView;
 
@@ -107,11 +108,14 @@ public class Main extends Application {
 		this.mainView = new BorderPane();
 
 		this.hBoxInputAndCruncher = new HBox();
-		this.hBoxInputAndCruncher.setSpacing(10);
+		this.hBoxInputAndCruncher.setSpacing(Constants.DEFAULT_PADDING);
+
+		this.allCrunchersList = new ArrayList<>();
+		this.cruncherNameCounter = 0;
 
 		this.vBoxFileInput = new VBox();
-		this.vBoxFileInput.setSpacing(10);
-		this.vBoxFileInput.setPadding(new Insets(10));
+		this.vBoxFileInput.setSpacing(Constants.DEFAULT_PADDING);
+		this.vBoxFileInput.setPadding(new Insets(Constants.DEFAULT_PADDING));
 
 		this.fileInputLabel = new Label("File inputs");
 		this.comboBoxFileInput = new ComboBox<>();
@@ -126,21 +130,28 @@ public class Main extends Application {
 		this.fileInputScrollPane.setContent(vBoxFileInput);
 
 		this.vBoxCrunchers = new VBox();
-		this.vBoxCrunchers.setSpacing(10);
-		this.vBoxCrunchers.setPadding(new Insets(10));
+		this.vBoxCrunchers.setSpacing(Constants.DEFAULT_PADDING);
+		this.vBoxCrunchers.setPadding(new Insets(Constants.DEFAULT_PADDING));
 
 		this.crunchersLabel = new Label("Crunchers");
 		this.addCruncherButton = new Button("Add Cruncher");
 
 		this.addCruncherButton.setOnAction(event -> {
-			TextInputDialog textInputDialog = new TextInputDialog();
+			TextInputDialog textInputDialog = new TextInputDialog("1");
 			textInputDialog.setHeaderText("Enter cruncher arity");
 
 			if (textInputDialog.showAndWait().isPresent() && !textInputDialog.getEditor().getText().equals("")) {
-				Label cruncherName = new Label("Name: Cruncher 0");
-				Label cruncherArity = new Label(textInputDialog.getEditor().getText());
+				String cruncherName = "Cruncher " + (cruncherNameCounter++);
+				Label lblCruncherName = new Label("Name: " + cruncherName);
+				Label lblCruncherArity = new Label("Arity: " + textInputDialog.getEditor().getText());
 				Button btnRemoveCruncher = new Button("Remove Cruncher");
-				this.vBoxCrunchers.getChildren().addAll(cruncherName, cruncherArity, btnRemoveCruncher);
+
+				for (ComboBox<String> comboBox : allCrunchersList) {
+					comboBox.getItems().add(cruncherName);
+					comboBox.getSelectionModel().select(0);
+				}
+
+				this.vBoxCrunchers.getChildren().addAll(lblCruncherName, lblCruncherArity, btnRemoveCruncher);
 			}
 		});
 
@@ -505,5 +516,13 @@ public class Main extends Application {
 
 	public void setMainView(BorderPane mainView) {
 		this.mainView = mainView;
+	}
+
+	public List<ComboBox<String>> getAllCrunchersList() {
+		return allCrunchersList;
+	}
+
+	public void setAllCrunchersList(List<ComboBox<String>> allCrunchersList) {
+		this.allCrunchersList = allCrunchersList;
 	}
 }
