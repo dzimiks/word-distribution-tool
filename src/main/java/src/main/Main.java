@@ -79,6 +79,12 @@ public class Main extends Application {
 
 	private BorderPane mainView;
 
+	// Result
+	private VBox vbResult;
+	private ListView<String> resultList;
+	private Button btnSingleResult;
+	private Button btnSumResult;
+
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -116,6 +122,19 @@ public class Main extends Application {
 		this.vBoxFileInput = new VBox();
 		this.vBoxFileInput.setSpacing(Constants.DEFAULT_PADDING);
 		this.vBoxFileInput.setPadding(new Insets(Constants.DEFAULT_PADDING));
+
+		this.vbResult = new VBox();
+		this.vbResult.setSpacing(Constants.DEFAULT_PADDING);
+		this.vbResult.setPadding(new Insets(Constants.DEFAULT_PADDING));
+
+		this.resultList = new ListView<>();
+		this.resultList.setMaxSize(200, 500);
+		this.resultList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+		this.btnSingleResult = new Button("Single Result");
+		this.btnSumResult = new Button("Sum Result");
+
+		this.vbResult.getChildren().addAll(resultList, btnSingleResult, btnSumResult);
 
 		this.fileInputLabel = new Label("File inputs");
 		this.comboBoxFileInput = new ComboBox<>();
@@ -195,6 +214,7 @@ public class Main extends Application {
 		// Set views
 		this.mainView.setLeft(hBoxInputAndCruncher);
 		this.mainView.setCenter(lineChart);
+		this.mainView.setRight(vbResult);
 	}
 
 	public void loadData() throws IOException {
