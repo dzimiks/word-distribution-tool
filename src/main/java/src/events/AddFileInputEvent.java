@@ -1,5 +1,6 @@
 package src.events;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
@@ -8,6 +9,7 @@ import javafx.stage.DirectoryChooser;
 import src.main.Main;
 
 import java.io.File;
+import java.util.NoSuchElementException;
 
 public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
@@ -34,8 +36,6 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		cbCruncherNames.getSelectionModel().select(0);
 
 		Button btnLinkCruncher = new Button("Link Cruncher");
-		btnLinkCruncher.setOnAction(e -> crunchersList.getItems().add(cbCruncherNames.getValue()));
-
 		Button btnUnlinkCruncher = new Button("Unlink Cruncher");
 		btnUnlinkCruncher.setDisable(true);
 
@@ -54,15 +54,9 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		cbDirectoriesNames.getSelectionModel().select(0);
 
 		Button btnAddDirectory = new Button("Add Directory");
-
-		btnAddDirectory.setOnAction(e -> {
-			DirectoryChooser directoryChooser = new DirectoryChooser();
-			File selectedFile = directoryChooser.showDialog(null);
-			directoriesList.getItems().add(selectedFile.getAbsolutePath());
-		});
-
 		Button btnRemoveDirectory = new Button("Remove Directory");
 		btnRemoveDirectory.setDisable(true);
+
 		Button btnRemoveDiskInput = new Button("Remove Disk Input");
 		Button btnStart = new Button("Start");
 
@@ -77,6 +71,65 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		hbDirsSecondRow.getChildren().add(btnStart);
 
 		Label lblStatus = new Label("Idle");
+
+		// TODO: Actions
+		crunchersList.setOnMouseClicked(event -> {
+			ObservableList<String> selectedCrunchers = crunchersList.getSelectionModel().getSelectedItems();
+
+			if (!selectedCrunchers.isEmpty()) {
+				btnUnlinkCruncher.setDisable(false);
+			} else {
+				btnUnlinkCruncher.setDisable(true);
+			}
+		});
+
+		directoriesList.setOnMouseClicked(event -> {
+			ObservableList<String> selectedDirectories = directoriesList.getSelectionModel().getSelectedItems();
+
+			if (!selectedDirectories.isEmpty()) {
+				btnRemoveDirectory.setDisable(false);
+			} else {
+				btnRemoveDirectory.setDisable(true);
+			}
+		});
+
+		btnLinkCruncher.setOnAction(event -> {
+			crunchersList.getItems().add(cbCruncherNames.getValue());
+		});
+
+		btnUnlinkCruncher.setOnAction(event -> {
+			ObservableList<String> selectedCrunchers = crunchersList.getSelectionModel().getSelectedItems();
+			System.out.println("SELECTED CRUNCHERS: " + selectedCrunchers);
+
+			if (!selectedCrunchers.isEmpty()) {
+				for (String cruncher : selectedCrunchers) {
+					crunchersList.getItems().remove(cruncher);
+					System.out.println("Cruncher: " + cruncher + " is removed!");
+				}
+			}
+		});
+
+		btnAddDirectory.setOnAction(event -> {
+			DirectoryChooser directoryChooser = new DirectoryChooser();
+			File selectedFile = directoryChooser.showDialog(null);
+			directoriesList.getItems().add(selectedFile.getAbsolutePath());
+		});
+
+		btnRemoveDirectory.setOnAction(event -> {
+			ObservableList<String> selectedDirectories = directoriesList.getSelectionModel().getSelectedItems();
+			System.out.println("SELECTED DIRECTORIES: " + selectedDirectories);
+
+			if (!selectedDirectories.isEmpty()) {
+				try {
+					for (String directory : selectedDirectories) {
+						directoriesList.getItems().remove(directory);
+						System.out.println("Directory: " + directory + " is removed!");
+					}
+				} catch (NoSuchElementException e) {
+					System.err.println("btnRemoveDirectory - NoSuchElementException!");
+				}
+			}
+		});
 
 		// Crunchers
 		app.getvBoxFileInput().getChildren().add(lblFileInput);

@@ -127,9 +127,22 @@ public class Main extends Application {
 
 		this.vBoxCrunchers = new VBox();
 		this.vBoxCrunchers.setSpacing(10);
+		this.vBoxCrunchers.setPadding(new Insets(10));
 
 		this.crunchersLabel = new Label("Crunchers");
 		this.addCruncherButton = new Button("Add Cruncher");
+
+		this.addCruncherButton.setOnAction(event -> {
+			TextInputDialog textInputDialog = new TextInputDialog();
+			textInputDialog.setHeaderText("Enter cruncher arity");
+
+			if (textInputDialog.showAndWait().isPresent() && !textInputDialog.getEditor().getText().equals("")) {
+				Label cruncherName = new Label("Name: Cruncher 0");
+				Label cruncherArity = new Label(textInputDialog.getEditor().getText());
+				Button btnRemoveCruncher = new Button("Remove Cruncher");
+				this.vBoxCrunchers.getChildren().addAll(cruncherName, cruncherArity, btnRemoveCruncher);
+			}
+		});
 
 		this.vBoxCrunchers.getChildren().add(crunchersLabel);
 		this.vBoxCrunchers.getChildren().add(addCruncherButton);
