@@ -11,15 +11,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import src.events.AddFileInputEvent;
 import src.utils.Constants;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
@@ -28,9 +27,45 @@ public class Main extends Application {
 	private int FILE_INPUT_SLEEP_TIME;
 	private int COUNTER_DATA_LIMIT;
 	private int SORT_PROGRESS_LIMIT;
+	private String[] DISKS;
 
 	// Setup
 	private InputStream inputStream;
+
+	// Utils
+	private HBox hBoxInputAndCruncher;
+	private VBox vBoxFileInput;
+	private ScrollPane fileInputScrollPane;
+	private VBox vBoxCrunchers;
+	private ScrollPane crunchersScrollPane;
+
+	// Chart
+	private LineChart<Number, Number> lineChart;
+	private Series<Number, Number> series;
+	private Data<Number, Number>[] data;
+	private NumberAxis xAxis;
+	private NumberAxis yAxis;
+
+	// Left view
+	private Label lblFileInput;
+	private Label lblCrunchersLabel;
+	private ListView<String> crunchersList;
+	private ComboBox<String> cbCruncherNames;
+	private HBox hbFileInputRow;
+	private Button btnLinkCruncher;
+	private Button btnUnlinkCruncher;
+
+	private Label directoriesLabel;
+	private ListView<String> directoriesList;
+	private ComboBox<String> cbDirectoriesNames;
+	private Button btnAddDirectory;
+	private Button btnRemoveDirectory;
+	private Button btnRemoveDiskInput;
+	private Button btnStart;
+
+	private HBox hbDirsFirstRow;
+	private HBox hbDirsSecondRow;
+	private Label lblStatus;
 
 	// FileInput
 	private Label fileInputLabel;
@@ -41,134 +76,83 @@ public class Main extends Application {
 	private Label crunchersLabel;
 	private Button addCruncherButton;
 
+	private BorderPane mainView;
+
 	public static void main(String[] args) {
 		launch(args);
 	}
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		BorderPane borderPane = new BorderPane();
+		// Init view
+		initView();
 
-		HBox hBoxInputAndCruncher = new HBox();
-		hBoxInputAndCruncher.setSpacing(30);
+		// Load data
+		loadData();
 
-		VBox vBoxFileInput = new VBox();
-		vBoxFileInput.setSpacing(10);
-		vBoxFileInput.setPadding(new Insets(10));
+		// Print
+		System.out.println("=== CONFIG ===");
+		System.out.println("FILE_INPUT_SLEEP_TIME: " + FILE_INPUT_SLEEP_TIME);
+		System.out.println("COUNTER_DATA_LIMIT: " + COUNTER_DATA_LIMIT);
+		System.out.println("SORT_PROGRESS_LIMIT: " + SORT_PROGRESS_LIMIT);
+		System.out.println("DISKS: " + Arrays.toString(DISKS));
+
+		Scene scene = new Scene(mainView, Constants.SCREEN_SIZE_WIDTH, Constants.SCREEN_SIZE_HEIGHT);
+		stage.setTitle(Constants.PROJECT_NAME);
+		stage.setScene(scene);
+		stage.show();
+	}
+
+	private void initView() {
+		this.mainView = new BorderPane();
+
+		this.hBoxInputAndCruncher = new HBox();
+		this.hBoxInputAndCruncher.setSpacing(10);
+
+		this.vBoxFileInput = new VBox();
+		this.vBoxFileInput.setSpacing(10);
+		this.vBoxFileInput.setPadding(new Insets(10));
 
 		this.fileInputLabel = new Label("File inputs");
 		this.comboBoxFileInput = new ComboBox<>();
 		this.addFileInputButton = new Button("Add File Input");
-		this.addFileInputButton.setOnAction(event -> {
-			// Crunchers
-			Label lblFileInput = new Label("File Input: " + comboBoxFileInput.getValue());
-			Label lblCrunchersLabel = new Label("Crunchers:");
+		this.addFileInputButton.setOnAction(new AddFileInputEvent(this));
 
-			ListView<String> crunchersList = new ListView<>();
-			crunchersList.setMaxSize(200, 150);
-			crunchersList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		this.vBoxFileInput.getChildren().add(fileInputLabel);
+		this.vBoxFileInput.getChildren().add(comboBoxFileInput);
+		this.vBoxFileInput.getChildren().add(addFileInputButton);
 
-			ComboBox<String> cbCruncherNames = new ComboBox<>();
-			cbCruncherNames.getItems().add("File 1");
-			cbCruncherNames.getItems().add("File 2");
-			cbCruncherNames.getSelectionModel().select(0);
+		this.fileInputScrollPane = new ScrollPane();
+		this.fileInputScrollPane.setContent(vBoxFileInput);
 
-			Button btnLinkCruncher = new Button("Link Cruncher");
-			btnLinkCruncher.setOnAction(e -> crunchersList.getItems().add(cbCruncherNames.getValue()));
-
-			Button btnUnlinkCruncher = new Button("Unlink Cruncher");
-			btnUnlinkCruncher.setDisable(true);
-
-			// Directories
-			Label directoriesLabel = new Label("Directories:");
-			ListView<String> directoriesList = new ListView<>();
-			directoriesList.setMaxSize(200, 150);
-			directoriesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-			ComboBox<String> cbDirectoriesNames = new ComboBox<>();
-			cbDirectoriesNames.getItems().add("Dir 1");
-			cbDirectoriesNames.getSelectionModel().select(0);
-
-			Button btnAddDirectory = new Button("Add Directory");
-			btnAddDirectory.setOnAction(e -> {
-				FileChooser fileChooser = new FileChooser();
-				List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
-
-				if (selectedFiles != null) {
-					for (File selectedFile : selectedFiles) {
-						directoriesList.getItems().add(selectedFile.getAbsolutePath());
-					}
-				}
-			});
-
-			Button btnRemoveDirectory = new Button("Remove Directory");
-			btnRemoveDirectory.setDisable(true);
-			Button btnRemoveDiskInput = new Button("Remove Disk Input");
-			Button btnStart = new Button("Start");
-
-			HBox hbFirstRow = new HBox();
-			hbFirstRow.setSpacing(10);
-			hbFirstRow.getChildren().add(btnAddDirectory);
-			hbFirstRow.getChildren().add(btnRemoveDirectory);
-
-			HBox hbSecondRow = new HBox();
-			hbSecondRow.setSpacing(10);
-			hbSecondRow.getChildren().add(btnRemoveDiskInput);
-			hbSecondRow.getChildren().add(btnStart);
-
-			Label lblStatus = new Label("Idle");
-
-			// Crunchers
-			vBoxFileInput.getChildren().add(lblFileInput);
-			vBoxFileInput.getChildren().add(lblCrunchersLabel);
-			vBoxFileInput.getChildren().add(crunchersList);
-			vBoxFileInput.getChildren().add(cbCruncherNames);
-			vBoxFileInput.getChildren().add(btnLinkCruncher);
-			vBoxFileInput.getChildren().add(btnUnlinkCruncher);
-
-			// Dirs
-			vBoxFileInput.getChildren().add(directoriesLabel);
-			vBoxFileInput.getChildren().add(directoriesList);
-			vBoxFileInput.getChildren().add(hbFirstRow);
-			vBoxFileInput.getChildren().add(hbSecondRow);
-			vBoxFileInput.getChildren().add(lblStatus);
-		});
-
-		vBoxFileInput.getChildren().add(fileInputLabel);
-		vBoxFileInput.getChildren().add(comboBoxFileInput);
-		vBoxFileInput.getChildren().add(addFileInputButton);
-
-		ScrollPane fileInputScrollPane = new ScrollPane();
-		fileInputScrollPane.setContent(vBoxFileInput);
-
-		VBox vBoxCrunchers = new VBox();
-		vBoxCrunchers.setSpacing(10);
+		this.vBoxCrunchers = new VBox();
+		this.vBoxCrunchers.setSpacing(10);
 
 		this.crunchersLabel = new Label("Crunchers");
 		this.addCruncherButton = new Button("Add Cruncher");
 
-		vBoxCrunchers.getChildren().add(crunchersLabel);
-		vBoxCrunchers.getChildren().add(addCruncherButton);
+		this.vBoxCrunchers.getChildren().add(crunchersLabel);
+		this.vBoxCrunchers.getChildren().add(addCruncherButton);
 
-		ScrollPane crunchersScrollPane = new ScrollPane();
-		crunchersScrollPane.setContent(vBoxCrunchers);
+		this.crunchersScrollPane = new ScrollPane();
+		this.crunchersScrollPane.setContent(vBoxCrunchers);
 
-		hBoxInputAndCruncher.getChildren().add(fileInputScrollPane);
-		hBoxInputAndCruncher.getChildren().add(crunchersScrollPane);
-		borderPane.setLeft(hBoxInputAndCruncher);
+		this.hBoxInputAndCruncher.getChildren().add(fileInputScrollPane);
+		this.hBoxInputAndCruncher.getChildren().add(crunchersScrollPane);
 
-		NumberAxis xAxis = new NumberAxis();
-		NumberAxis yAxis = new NumberAxis();
+		this.xAxis = new NumberAxis();
+		this.yAxis = new NumberAxis();
 
-		xAxis.setLabel("Number of Words");
-		yAxis.setLabel("Count");
+		this.xAxis.setLabel("Number of Words");
+		this.yAxis.setLabel("Count");
 
-		LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
+		this.lineChart = new LineChart<>(xAxis, yAxis);
+		this.lineChart.setTitle(Constants.PROJECT_NAME);
 
-		lineChart.setTitle(Constants.PROJECT_NAME);
-		Series<Number, Number> series = new Series<>();
-		Data<Number, Number>[] data = new Data[100];
-		series.setName("Words");
+		this.series = new Series<>();
+		this.data = new Data[100];
+		this.series.setName("Words");
+
 		Random random = new Random(13213);
 		int start = 100;
 
@@ -177,44 +161,336 @@ public class Main extends Application {
 			int y = x - random.nextInt() % 50;
 			start -= random.nextInt() % 100;
 
-			data[i] = new Data<>(x, y);
+			this.data[i] = new Data<>(x, y);
 		}
 
 		// Populate the series with data
-		series.getData().addAll(data);
-		lineChart.getData().add(series);
-		borderPane.setCenter(lineChart);
+		this.series.getData().addAll(data);
+		this.lineChart.getData().add(series);
 
-		// Load data
-		loadData();
-
-		// Print
-		System.out.println("FILE_INPUT_SLEEP_TIME: " + FILE_INPUT_SLEEP_TIME);
-		System.out.println("COUNTER_DATA_LIMIT: " + COUNTER_DATA_LIMIT);
-		System.out.println("SORT_PROGRESS_LIMIT: " + SORT_PROGRESS_LIMIT);
-
-		Scene scene = new Scene(borderPane, Constants.SCREEN_SIZE_WIDTH, Constants.SCREEN_SIZE_HEIGHT);
-		stage.setTitle(Constants.PROJECT_NAME);
-		stage.setScene(scene);
-		stage.show();
+		// Set views
+		this.mainView.setLeft(hBoxInputAndCruncher);
+		this.mainView.setCenter(lineChart);
 	}
 
 	public void loadData() throws IOException {
 		Properties prop = new Properties();
-		String configFilePath = Constants.CONFIG_FILE_PATH;
-
-		inputStream = new FileInputStream(configFilePath);
+		this.inputStream = new FileInputStream(Constants.CONFIG_FILE_PATH);
 		prop.load(inputStream);
 
-		FILE_INPUT_SLEEP_TIME = Integer.parseInt(prop.getProperty(Constants.FILE_INPUT_SLEEP_TIME));
-		COUNTER_DATA_LIMIT = Integer.parseInt(prop.getProperty(Constants.COUNTER_DATA_LIMIT));
-		SORT_PROGRESS_LIMIT = Integer.parseInt(prop.getProperty(Constants.SORT_PROGRESS_LIMIT));
+		this.FILE_INPUT_SLEEP_TIME = Integer.parseInt(prop.getProperty(Constants.FILE_INPUT_SLEEP_TIME));
+		this.COUNTER_DATA_LIMIT = Integer.parseInt(prop.getProperty(Constants.COUNTER_DATA_LIMIT));
+		this.SORT_PROGRESS_LIMIT = Integer.parseInt(prop.getProperty(Constants.SORT_PROGRESS_LIMIT));
 
 		String disksProperty = prop.getProperty(Constants.DISKS);
-		String[] disks = disksProperty.split(";");
+		this.DISKS = disksProperty.split(";");
 
-		comboBoxFileInput.getItems().addAll(disks);
-		comboBoxFileInput.getSelectionModel().select(0);
-		inputStream.close();
+		this.comboBoxFileInput.getItems().addAll(DISKS);
+		this.comboBoxFileInput.getSelectionModel().select(0);
+		this.inputStream.close();
+	}
+
+	public int getFILE_INPUT_SLEEP_TIME() {
+		return FILE_INPUT_SLEEP_TIME;
+	}
+
+	public void setFILE_INPUT_SLEEP_TIME(int FILE_INPUT_SLEEP_TIME) {
+		this.FILE_INPUT_SLEEP_TIME = FILE_INPUT_SLEEP_TIME;
+	}
+
+	public int getCOUNTER_DATA_LIMIT() {
+		return COUNTER_DATA_LIMIT;
+	}
+
+	public void setCOUNTER_DATA_LIMIT(int COUNTER_DATA_LIMIT) {
+		this.COUNTER_DATA_LIMIT = COUNTER_DATA_LIMIT;
+	}
+
+	public int getSORT_PROGRESS_LIMIT() {
+		return SORT_PROGRESS_LIMIT;
+	}
+
+	public void setSORT_PROGRESS_LIMIT(int SORT_PROGRESS_LIMIT) {
+		this.SORT_PROGRESS_LIMIT = SORT_PROGRESS_LIMIT;
+	}
+
+	public String[] getDISKS() {
+		return DISKS;
+	}
+
+	public void setDISKS(String[] DISKS) {
+		this.DISKS = DISKS;
+	}
+
+	public InputStream getInputStream() {
+		return inputStream;
+	}
+
+	public void setInputStream(InputStream inputStream) {
+		this.inputStream = inputStream;
+	}
+
+	public HBox gethBoxInputAndCruncher() {
+		return hBoxInputAndCruncher;
+	}
+
+	public void sethBoxInputAndCruncher(HBox hBoxInputAndCruncher) {
+		this.hBoxInputAndCruncher = hBoxInputAndCruncher;
+	}
+
+	public VBox getvBoxFileInput() {
+		return vBoxFileInput;
+	}
+
+	public void setvBoxFileInput(VBox vBoxFileInput) {
+		this.vBoxFileInput = vBoxFileInput;
+	}
+
+	public ScrollPane getFileInputScrollPane() {
+		return fileInputScrollPane;
+	}
+
+	public void setFileInputScrollPane(ScrollPane fileInputScrollPane) {
+		this.fileInputScrollPane = fileInputScrollPane;
+	}
+
+	public VBox getvBoxCrunchers() {
+		return vBoxCrunchers;
+	}
+
+	public void setvBoxCrunchers(VBox vBoxCrunchers) {
+		this.vBoxCrunchers = vBoxCrunchers;
+	}
+
+	public ScrollPane getCrunchersScrollPane() {
+		return crunchersScrollPane;
+	}
+
+	public void setCrunchersScrollPane(ScrollPane crunchersScrollPane) {
+		this.crunchersScrollPane = crunchersScrollPane;
+	}
+
+	public LineChart<Number, Number> getLineChart() {
+		return lineChart;
+	}
+
+	public void setLineChart(LineChart<Number, Number> lineChart) {
+		this.lineChart = lineChart;
+	}
+
+	public Series<Number, Number> getSeries() {
+		return series;
+	}
+
+	public void setSeries(Series<Number, Number> series) {
+		this.series = series;
+	}
+
+	public Data<Number, Number>[] getData() {
+		return data;
+	}
+
+	public void setData(Data<Number, Number>[] data) {
+		this.data = data;
+	}
+
+	public NumberAxis getxAxis() {
+		return xAxis;
+	}
+
+	public void setxAxis(NumberAxis xAxis) {
+		this.xAxis = xAxis;
+	}
+
+	public NumberAxis getyAxis() {
+		return yAxis;
+	}
+
+	public void setyAxis(NumberAxis yAxis) {
+		this.yAxis = yAxis;
+	}
+
+	public Label getLblFileInput() {
+		return lblFileInput;
+	}
+
+	public void setLblFileInput(Label lblFileInput) {
+		this.lblFileInput = lblFileInput;
+	}
+
+	public Label getLblCrunchersLabel() {
+		return lblCrunchersLabel;
+	}
+
+	public void setLblCrunchersLabel(Label lblCrunchersLabel) {
+		this.lblCrunchersLabel = lblCrunchersLabel;
+	}
+
+	public ListView<String> getCrunchersList() {
+		return crunchersList;
+	}
+
+	public void setCrunchersList(ListView<String> crunchersList) {
+		this.crunchersList = crunchersList;
+	}
+
+	public ComboBox<String> getCbCruncherNames() {
+		return cbCruncherNames;
+	}
+
+	public void setCbCruncherNames(ComboBox<String> cbCruncherNames) {
+		this.cbCruncherNames = cbCruncherNames;
+	}
+
+	public HBox getHbFileInputRow() {
+		return hbFileInputRow;
+	}
+
+	public void setHbFileInputRow(HBox hbFileInputRow) {
+		this.hbFileInputRow = hbFileInputRow;
+	}
+
+	public Button getBtnLinkCruncher() {
+		return btnLinkCruncher;
+	}
+
+	public void setBtnLinkCruncher(Button btnLinkCruncher) {
+		this.btnLinkCruncher = btnLinkCruncher;
+	}
+
+	public Button getBtnUnlinkCruncher() {
+		return btnUnlinkCruncher;
+	}
+
+	public void setBtnUnlinkCruncher(Button btnUnlinkCruncher) {
+		this.btnUnlinkCruncher = btnUnlinkCruncher;
+	}
+
+	public Label getDirectoriesLabel() {
+		return directoriesLabel;
+	}
+
+	public void setDirectoriesLabel(Label directoriesLabel) {
+		this.directoriesLabel = directoriesLabel;
+	}
+
+	public ListView<String> getDirectoriesList() {
+		return directoriesList;
+	}
+
+	public void setDirectoriesList(ListView<String> directoriesList) {
+		this.directoriesList = directoriesList;
+	}
+
+	public ComboBox<String> getCbDirectoriesNames() {
+		return cbDirectoriesNames;
+	}
+
+	public void setCbDirectoriesNames(ComboBox<String> cbDirectoriesNames) {
+		this.cbDirectoriesNames = cbDirectoriesNames;
+	}
+
+	public Button getBtnAddDirectory() {
+		return btnAddDirectory;
+	}
+
+	public void setBtnAddDirectory(Button btnAddDirectory) {
+		this.btnAddDirectory = btnAddDirectory;
+	}
+
+	public Button getBtnRemoveDirectory() {
+		return btnRemoveDirectory;
+	}
+
+	public void setBtnRemoveDirectory(Button btnRemoveDirectory) {
+		this.btnRemoveDirectory = btnRemoveDirectory;
+	}
+
+	public Button getBtnRemoveDiskInput() {
+		return btnRemoveDiskInput;
+	}
+
+	public void setBtnRemoveDiskInput(Button btnRemoveDiskInput) {
+		this.btnRemoveDiskInput = btnRemoveDiskInput;
+	}
+
+	public Button getBtnStart() {
+		return btnStart;
+	}
+
+	public void setBtnStart(Button btnStart) {
+		this.btnStart = btnStart;
+	}
+
+	public HBox getHbDirsFirstRow() {
+		return hbDirsFirstRow;
+	}
+
+	public void setHbDirsFirstRow(HBox hbDirsFirstRow) {
+		this.hbDirsFirstRow = hbDirsFirstRow;
+	}
+
+	public HBox getHbDirsSecondRow() {
+		return hbDirsSecondRow;
+	}
+
+	public void setHbDirsSecondRow(HBox hbDirsSecondRow) {
+		this.hbDirsSecondRow = hbDirsSecondRow;
+	}
+
+	public Label getLblStatus() {
+		return lblStatus;
+	}
+
+	public void setLblStatus(Label lblStatus) {
+		this.lblStatus = lblStatus;
+	}
+
+	public Label getFileInputLabel() {
+		return fileInputLabel;
+	}
+
+	public void setFileInputLabel(Label fileInputLabel) {
+		this.fileInputLabel = fileInputLabel;
+	}
+
+	public ComboBox<String> getComboBoxFileInput() {
+		return comboBoxFileInput;
+	}
+
+	public void setComboBoxFileInput(ComboBox<String> comboBoxFileInput) {
+		this.comboBoxFileInput = comboBoxFileInput;
+	}
+
+	public Button getAddFileInputButton() {
+		return addFileInputButton;
+	}
+
+	public void setAddFileInputButton(Button addFileInputButton) {
+		this.addFileInputButton = addFileInputButton;
+	}
+
+	public Label getCrunchersLabel() {
+		return crunchersLabel;
+	}
+
+	public void setCrunchersLabel(Label crunchersLabel) {
+		this.crunchersLabel = crunchersLabel;
+	}
+
+	public Button getAddCruncherButton() {
+		return addCruncherButton;
+	}
+
+	public void setAddCruncherButton(Button addCruncherButton) {
+		this.addCruncherButton = addCruncherButton;
+	}
+
+	public BorderPane getMainView() {
+		return mainView;
+	}
+
+	public void setMainView(BorderPane mainView) {
+		this.mainView = mainView;
 	}
 }
