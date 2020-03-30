@@ -10,48 +10,29 @@ import java.util.*;
 
 public class CountWords {
 
-	public static void main(String[] args) {
-		try {
-			String filePathTest = "data/dzimiks/A/input.txt";
-			String filePath = "data/disk1/A/wiki-1.txt";
-			List<String> result = Files.readLines(new File(filePath), Charsets.UTF_8);
-			List<String> words = new ArrayList<>();
-			result.forEach(part -> words.addAll(Arrays.asList(part.split("\\s"))));
+	public ImmutableList<Multiset.Entry<Object>> getMostOccurringBOW(String filePath, int arity) throws IOException {
+		List<String> result = Files.readLines(new File(filePath), Charsets.UTF_8);
+		List<String> words = new ArrayList<>();
+		result.forEach(part -> words.addAll(Arrays.asList(part.split("\\s"))));
 
-			ConcurrentHashMultiset<Object> multiset = ConcurrentHashMultiset.create();
-			int arity = 1;
-			int wordsLength = words.size();
-			List<String> bagOfWords;
+		ConcurrentHashMultiset<Object> multiset = ConcurrentHashMultiset.create();
+		int wordsLength = words.size();
+		List<String> bagOfWords;
 
-			System.out.println("NUMBER OF WORDS: " + wordsLength);
+		System.out.println("NUMBER OF WORDS: " + wordsLength);
 
-			for (int i = 0; i < wordsLength; i += arity) {
-				bagOfWords = getBagOfWords(words, wordsLength, i, i + arity);
-				Collections.sort(bagOfWords);
-				multiset.add(bagOfWords);
-
-//				System.out.println("bagOfWords: " + bagOfWords);
-//				System.out.println("multiset: " + multiset);
-//				System.out.println();
-			}
-
-			ImmutableSet<Multiset.Entry<Object>> entriesSortedByCount = Multisets.copyHighestCountFirst(multiset).entrySet();
-			System.out.println("entriesSortedByCount size: " + entriesSortedByCount.size());
-			int i = 0;
-
-			for (Multiset.Entry<Object> entry : entriesSortedByCount) {
-				System.out.println(entry);
-
-				if (++i == 10) {
-					return;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		for (int i = 0; i < wordsLength; i += arity) {
+			bagOfWords = getBagOfWords(words, wordsLength, i, i + arity);
+			Collections.sort(bagOfWords);
+			multiset.add(bagOfWords);
 		}
+
+		ImmutableSet<Multiset.Entry<Object>> entriesSortedByCount = Multisets.copyHighestCountFirst(multiset).entrySet();
+		System.out.println("entriesSortedByCount size: " + entriesSortedByCount.size());
+		return entriesSortedByCount.asList().subList(0, 100);
 	}
 
-	public static List<String> getBagOfWords(List<String> words, int length, int startIndex, int endIndex) {
+	private List<String> getBagOfWords(List<String> words, int length, int startIndex, int endIndex) {
 		if (words == null || startIndex > length || startIndex < 0 || startIndex > endIndex) {
 			return null;
 		}

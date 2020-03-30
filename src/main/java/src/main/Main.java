@@ -18,7 +18,10 @@ import src.utils.Constants;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 public class Main extends Application {
 
@@ -40,7 +43,7 @@ public class Main extends Application {
 	// Chart
 	private LineChart<Number, Number> lineChart;
 	private Series<Number, Number> series;
-	private Data<Number, Number>[] data;
+	private List<Data<Number, Number>> data;
 	private NumberAxis xAxis;
 	private NumberAxis yAxis;
 
@@ -187,25 +190,14 @@ public class Main extends Application {
 		this.yAxis = new NumberAxis();
 
 		this.xAxis.setLabel("Number of Words");
-		this.yAxis.setLabel("Count");
+		this.yAxis.setLabel("Occurrence Count");
 
 		this.lineChart = new LineChart<>(xAxis, yAxis);
 		this.lineChart.setTitle(Constants.PROJECT_NAME);
 
 		this.series = new Series<>();
-		this.data = new Data[100];
+		this.data = new ArrayList<>();
 		this.series.setName("Words");
-
-		Random random = new Random(13213);
-		int start = 100;
-
-		for (int i = 0; i < 100; i++) {
-			int x = start - random.nextInt() % 100;
-			int y = x - random.nextInt() % 50;
-			start -= random.nextInt() % 100;
-
-			this.data[i] = new Data<>(x, y);
-		}
 
 		// Populate the series with data
 		this.series.getData().addAll(data);
@@ -330,11 +322,11 @@ public class Main extends Application {
 		this.series = series;
 	}
 
-	public Data<Number, Number>[] getData() {
+	public List<Data<Number, Number>> getData() {
 		return data;
 	}
 
-	public void setData(Data<Number, Number>[] data) {
+	public void setData(List<Data<Number, Number>> data) {
 		this.data = data;
 	}
 

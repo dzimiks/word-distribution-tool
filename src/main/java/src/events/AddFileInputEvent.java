@@ -1,16 +1,24 @@
 package src.events;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multiset;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import src.main.Main;
 import src.utils.Constants;
+import src.utils.CountWords;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
@@ -126,6 +134,30 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 				} catch (NoSuchElementException e) {
 					System.err.println("btnRemoveDirectory - NoSuchElementException!");
 				}
+			}
+		});
+
+		btnStart.setOnAction(event -> {
+			try {
+				CountWords countWords = new CountWords();
+				String filePath = "data/disk1/A/wiki-1.txt";
+				int arity = 1;
+
+				ImmutableList<Multiset.Entry<Object>> result = countWords.getMostOccurringBOW(filePath, arity);
+				AtomicInteger counter = new AtomicInteger();
+				List<XYChart.Data<Number, Number>> data = new ArrayList<>();
+
+				for (int i = 0; i < result.size(); i++) {
+					Multiset.Entry<Object> bow = result.get(i);
+					System.out.println(i + ": " + bow);
+					XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
+					data.add(newData);
+				}
+
+				app.getSeries().getData().clear();
+				app.getSeries().getData().addAll(data);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		});
 
