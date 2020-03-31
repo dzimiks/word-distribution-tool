@@ -5,10 +5,12 @@ import com.google.common.collect.Multiset;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.StageStyle;
+import src.components.FileInput;
 import src.main.Main;
 import src.utils.Constants;
 import src.utils.CountWords;
@@ -117,6 +119,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
 		btnAddDirectory.setOnAction(event -> {
 			DirectoryChooser directoryChooser = new DirectoryChooser();
+			directoryChooser.setInitialDirectory(new File("data/disk1/"));
 			File selectedFile = directoryChooser.showDialog(null);
 			directoriesList.getItems().add(selectedFile.getAbsolutePath());
 		});
@@ -138,27 +141,47 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		});
 
 		btnStart.setOnAction(event -> {
-			try {
-				CountWords countWords = new CountWords();
-				String filePath = "data/disk1/A/wiki-1.txt";
-				int arity = 1;
+			String selectedDirectory = directoriesList.getSelectionModel().getSelectedItem();
+			System.out.println("selectedDirectory: " + selectedDirectory);
 
-				ImmutableList<Multiset.Entry<Object>> result = countWords.getMostOccurringBOW(filePath, arity);
-				AtomicInteger counter = new AtomicInteger();
-				List<XYChart.Data<Number, Number>> data = new ArrayList<>();
+			if (selectedDirectory != null) {
+				FileInput fileInput = new FileInput(selectedDirectory);
 
-				for (int i = 0; i < result.size(); i++) {
-					Multiset.Entry<Object> bow = result.get(i);
-					System.out.println(i + ": " + bow);
-					XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
-					data.add(newData);
+				try {
+					fileInput.traverseDirectory();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-
-				app.getSeries().getData().clear();
-				app.getSeries().getData().addAll(data);
-			} catch (IOException e) {
-				e.printStackTrace();
+			} else {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.initStyle(StageStyle.UTILITY);
+				alert.setTitle("Error");
+				alert.setHeaderText("Error man");
+				alert.setContentText("You didn't selected any directory!");
+				alert.showAndWait();
 			}
+
+//			try {
+//				CountWords countWords = new CountWords();
+//				String filePath = "data/disk1/A/wiki-1.txt";
+//				int arity = 1;
+//
+//				ImmutableList<Multiset.Entry<Object>> result = countWords.getMostOccurringBOW(filePath, arity);
+//				AtomicInteger counter = new AtomicInteger();
+//				List<Data<Number, Number>> data = new ArrayList<>();
+//
+//				for (int i = 0; i < result.size(); i++) {
+//					Multiset.Entry<Object> bow = result.get(i);
+//					System.out.println(i + ": " + bow);
+//					Data<Number, Number> newData = new Data<>(counter.getAndIncrement(), bow.getCount());
+//					data.add(newData);
+//				}
+//
+//				app.getSeries().getData().clear();
+//				app.getSeries().getData().addAll(data);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
 		});
 
 		app.getAllCrunchersList().add(cbCruncherNames);
