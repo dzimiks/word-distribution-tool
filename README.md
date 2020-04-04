@@ -81,3 +81,53 @@
 > Ako svaki cruncher worker ima svoj blocking queue i ako se na njega dodaje file, kako odredjujemo na koji blocking queue dodajemo datoteku ako ima vise crunchera ili se to gleda kao da saljemo na oba posto imaju razlicite arnosti?
 
 > Da li postoji samo jedna Output komponenta na koju svi cruncheri stavljaju obradjene datoteke, posto u tekstu pise svaka cruncher komponenta je vezana za proizvoljno mnogo outPut blokirajucih redova nad kojima je producer? (dok je objasnjavao pricao je kako postoji jedna output komponenta za sve crunchere, zato ovo pitanje)
+
+# Facts
+
+## Konkurentni alati
+
+- synchronized je kao mutex, bitno je da kljuc bude nesto sto se ne menja u toku programa
+- koristi se `.class` kao lock, ali je najbolje napraviti posebnu promenljivu koja ce biti public static da bude lock
+- wait/notify moraju biti u kriticnoj sekciji (synchronized blok)
+- semaphore se koristi kada imamo vise instanci nekon deljenog resursa, ali nije beskonacan (primer: stampac)
+- CountDownLatch - kada imamo 2 kategorije niti, ove iz prvog dela su zavrsile prvi deo posla, a hoce da rade nesto drugo
+pa moraju da sacekaju niti iz druge kategorije da zavrse svoj posao, pa moraju da cekaju (zovu await), a niti iz druge kategorije
+kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse odbrojavanje, onda se iz prve kategorije odblokiraju i nastave dalje
+
+## Thread pool
+
+- Future - jako bitan
+- FutureTask uzima Callable i kreira Thread objekat nad njim
+- Executor sistem
+- 01:23:06
+- nema komunikacije izmedju niti
+- submit() najbitnija metoda
+- shutdown() obavezan - ceka da se zavrse sve niti i tek onda se gasi sve
+- CompletionService bitan
+- ForkJoinPool i ForkJoinTask dele taskove na pola - fork(), compute() i join()
+
+## Cancellation i GUI
+
+- poison pill sablon za prekidanje niti
+- 50:00 - bitno
+- JavaFX ima Task klasu koja ce da se koristi u konkurentnim izracunavanjima
+- 01:23:00 progress bar primer
+- Platform.runLater()
+
+# HOW TO
+
+## FileInput
+
+- ForkJoinPool za FileInputWorkera koji ucitava tekst u rezultat
+- ograniciti broj Threadova i koliko cemo fajlova citati zbog memorije
+- FileInput komponenta dobija disk na kome su datoteke kao argument
+- obilazak direktorijuma stavlja abs putanje datoteka u BlockingQueue
+- Čitanje jedne datoteke treba da se obavlja kao zaseban posao unutar Thread Pool-a koji je namenjen za sve FileInput komponente
+- ForkJoinPool prosledjujemo svim FileInput komponentama i ogranicimo broj threadova
+- svaka FileInput komponenta koristi max broj threadova u tom pool-u
+- 
+
+
+## PITANJA ZA BANETA
+
+- kako da konkurentno citamo fajlove sa razlicitih diskova?

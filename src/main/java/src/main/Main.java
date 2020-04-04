@@ -12,6 +12,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import src.components.input.FileInput;
 import src.events.AddFileInputEvent;
 import src.utils.Constants;
 
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Main extends Application {
 
@@ -74,6 +76,7 @@ public class Main extends Application {
 	private Label fileInputLabel;
 	private ComboBox<String> comboBoxFileInput;
 	private Button addFileInputButton;
+	private List<FileInput> fileInputs;
 
 	// Crunchers
 	private Label crunchersLabel;
@@ -115,6 +118,8 @@ public class Main extends Application {
 
 	private void initView() {
 		this.mainView = new BorderPane();
+
+		this.fileInputs = new CopyOnWriteArrayList<>();
 
 		this.hBoxInputAndCruncher = new HBox();
 		this.hBoxInputAndCruncher.setSpacing(Constants.DEFAULT_PADDING);
@@ -536,5 +541,13 @@ public class Main extends Application {
 
 	public void setAllCrunchersList(List<ComboBox<String>> allCrunchersList) {
 		this.allCrunchersList = allCrunchersList;
+	}
+
+	public List<FileInput> getFileInputs() {
+		return fileInputs;
+	}
+
+	public void setFileInputs(List<FileInput> fileInputs) {
+		this.fileInputs = fileInputs;
 	}
 }

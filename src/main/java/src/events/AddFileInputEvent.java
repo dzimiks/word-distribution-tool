@@ -1,26 +1,18 @@
 package src.events;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multiset;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.StageStyle;
-import src.components.FileInput;
+import src.components.input.FileInput;
 import src.main.Main;
 import src.utils.Constants;
-import src.utils.CountWords;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
@@ -145,13 +137,14 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 			System.out.println("selectedDirectory: " + selectedDirectory);
 
 			if (selectedDirectory != null) {
-				FileInput fileInput = new FileInput(selectedDirectory);
-
-				try {
-					fileInput.traverseDirectory();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+//				FileInput fileInput = new FileInput(selectedDirectory);
+//				app.getFileInputs().add(fileInput);
+//
+//				try {
+//					fileInput.traverseDirectory();
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
 			} else {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.initStyle(StageStyle.UTILITY);
@@ -183,6 +176,15 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 //				e.printStackTrace();
 //			}
 		});
+
+//		btnRemoveDiskInput.setOnAction(event -> {
+//			List<FileInput> fileInputs = app.getFileInputs();
+//			System.out.println("\n>>> " + fileInputs);
+//
+//			fileInputs.forEach(input -> {
+//				input.setBlocked(!input.isBlocked());
+//			});
+//		});
 
 		app.getAllCrunchersList().add(cbCruncherNames);
 

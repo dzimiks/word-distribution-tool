@@ -1,4 +1,4 @@
-package src.components;
+package src.components.input;
 
 public class FileRef {
 
