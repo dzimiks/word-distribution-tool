@@ -2,12 +2,12 @@ package src.components.input;
 
 
 import com.google.common.io.Files;
+import src.components.cruncher.CounterCruncher;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,84 +16,80 @@ public class FileInput implements Runnable {
 	private static int FILE_INPUT_SLEEP_TIME = 5000;
 
 	private List<String> directories;
-	private BlockingQueue<File> blockingQueue;
-	private List<BlockingQueue<Map<String, String>>> crunchersBlockingQueues;
+	private BlockingQueue<String> filePathQueue;
+	private List<CounterCruncher> cruncherList;
 	private List<FileRef> files;
 	private ExecutorService threadPool;
+	private FileInputMiddleware fileInputMiddleware;
 
 	public FileInput(ExecutorService threadPool) {
 		this.threadPool = threadPool;
-		this.crunchersBlockingQueues = new CopyOnWriteArrayList<>();
+		this.cruncherList = new CopyOnWriteArrayList<>();
 		this.directories = new CopyOnWriteArrayList<>();
-		this.blockingQueue = new LinkedBlockingQueue<>();
+		this.filePathQueue = new LinkedBlockingQueue<>();
 		this.files = new CopyOnWriteArrayList<>();
+		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue);
 		System.out.println("FileInput init");
 	}
 
 	@Override
 	public void run() {
 		try {
+			Thread thread = new Thread(fileInputMiddleware);
+			thread.start();
+
 			traverseDirectories();
-			threadPool.shutdown();
+
+			// TODO: When to shutdown?
+//			threadPool.shutdown();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void traverseDirectories() throws InterruptedException {
-		for (String directory : directories) {
-			File rootDir = new File(directory);
-			AtomicInteger fileNumber = new AtomicInteger(0);
-			this.blockingQueue.add(rootDir);
+		while (true) {
+			for (String directory : directories) {
+				File rootDir = new File(directory);
+				AtomicInteger fileNumber = new AtomicInteger(0);
 
-			//		while (true) {
-			for (File file : Files.fileTraverser().depthFirstPreOrder(rootDir)) {
-				if (file.getName().endsWith(".txt")) {
-					if (!contains(file)) {
-						String lastModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(file.lastModified()));
-						System.out.println("FileInput -> Found file: " + file.getPath() + " | Last modified: " + lastModified);
-						files.add(new FileRef(file.getAbsolutePath(), file.lastModified()));
-						fileNumber.incrementAndGet();
+				for (File file : Files.fileTraverser().depthFirstPreOrder(rootDir)) {
+					if (file.getName().endsWith(".txt")) {
+						if (!contains(file)) {
+							String lastModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(file.lastModified()));
+							System.out.println("FileInput -> Found file: " + file.getPath() + " | Last modified: " + lastModified);
 
-						// TODO: Add file to worker
-						FileInputWorker fileInputWorker = new FileInputWorker(file);
-						Future<Map<String, String>> result =  threadPool.submit(fileInputWorker);
+							this.files.add(new FileRef(file.getAbsolutePath(), file.lastModified()));
+							this.filePathQueue.add(file.getAbsolutePath());
+							fileNumber.incrementAndGet();
+						} else {
+							// TODO: Last modified is not working
+							for (int i = 0; i < files.size(); i++) {
+								FileRef currFile = files.get(i);
+								System.out.println("Seen: " + currFile.getPath());
 
-						try {
-							for (Map.Entry<String, String> res : result.get().entrySet()) {
-								System.out.println("Future file path: " + res.getKey());
-								System.out.println("Future file length: " + res.getValue().length());
-								System.out.println();
-							}
-						} catch (ExecutionException e) {
-							e.printStackTrace();
-						}
-					} else {
-						for (int i = 0; i < files.size(); i++) {
-							FileRef currFile = files.get(i);
-							System.out.println("Seen: " + currFile.getPath());
+								if (currFile.getPath().equals(file.getAbsolutePath())) {
+									long currLastModified = currFile.getLastModified();
+									long fileLastModified = file.lastModified();
 
-							if (currFile.getPath().equals(file.getAbsolutePath())) {
-								long currLastModified = currFile.getLastModified();
-								long fileLastModified = file.lastModified();
+									System.out.println("currLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currLastModified)));
+									System.out.println("fileLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(fileLastModified)));
 
-								System.out.println("currLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currLastModified)));
-								System.out.println("fileLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(fileLastModified)));
-
-								if (currLastModified != fileLastModified) {
-									files.set(i, new FileRef(file.getAbsolutePath(), file.lastModified()));
-									System.out.println(">>> File " + file.getName() + " is replaced!");
+									if (currLastModified != fileLastModified) {
+										files.set(i, new FileRef(file.getAbsolutePath(), file.lastModified()));
+										System.out.println(">>> File " + file.getName() + " is replaced!");
+									}
 								}
 							}
 						}
 					}
 				}
+
+				System.out.println("Found " + fileNumber.get() + " files so far...");
 			}
 
-			System.out.println("Found " + fileNumber.get() + " files so far...");
-//		System.out.println("FileInput -> Waiting " + (FILE_INPUT_SLEEP_TIME / 1000) + " seconds...");
-//		Thread.sleep(FILE_INPUT_SLEEP_TIME);
-//		}
+			System.out.println("FileInput -> Waiting " + (FILE_INPUT_SLEEP_TIME / 1000) + " seconds...");
+			Thread.sleep(FILE_INPUT_SLEEP_TIME);
 		}
 	}
 
@@ -109,5 +105,9 @@ public class FileInput implements Runnable {
 
 	public List<String> getDirectories() {
 		return directories;
+	}
+
+	public List<CounterCruncher> getCruncherList() {
+		return cruncherList;
 	}
 }

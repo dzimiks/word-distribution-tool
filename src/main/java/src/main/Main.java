@@ -12,6 +12,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import src.components.cruncher.CruncherView;
 import src.components.input.FileInput;
 import src.events.AddFileInputEvent;
 import src.utils.Constants;
@@ -169,16 +170,14 @@ public class Main extends Application {
 
 			if (textInputDialog.showAndWait().isPresent() && !textInputDialog.getEditor().getText().equals("")) {
 				String cruncherName = "Cruncher " + (cruncherNameCounter++);
-				Label lblCruncherName = new Label("Name: " + cruncherName);
-				Label lblCruncherArity = new Label("Arity: " + textInputDialog.getEditor().getText());
-				Button btnRemoveCruncher = new Button("Remove Cruncher");
+				CruncherView cruncherView = new CruncherView(cruncherName, textInputDialog.getEditor().getText());
 
 				for (ComboBox<String> comboBox : allCrunchersList) {
 					comboBox.getItems().add(cruncherName);
 					comboBox.getSelectionModel().select(0);
 				}
 
-				this.vBoxCrunchers.getChildren().addAll(lblCruncherName, lblCruncherArity, btnRemoveCruncher);
+				this.vBoxCrunchers.getChildren().add(cruncherView);
 			}
 		});
 
