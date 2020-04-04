@@ -16,9 +16,12 @@ public class CruncherView extends VBox {
 	private Label lblCruncherArity;
 	private Button btnRemoveCruncher;
 	private List<Label> fileNamesList;
+	private CounterCruncher cruncher;
 
 	public CruncherView(String cruncherName, String arity) {
 		this.cruncherName = cruncherName;
+		this.cruncher = new CounterCruncher();
+
 		this.lblCruncherName = new Label("Name: " + cruncherName);
 		this.lblCruncherArity = new Label("Arity: " + arity);
 		this.btnRemoveCruncher = new Button("Remove Cruncher");
@@ -50,5 +53,14 @@ public class CruncherView extends VBox {
 
 	public List<Label> getFileNamesList() {
 		return fileNamesList;
+	}
+
+	public CounterCruncher getCruncher() {
+		return cruncher;
+	}
+
+	@Override
+	public String toString() {
+		return cruncherName;
 	}
 }

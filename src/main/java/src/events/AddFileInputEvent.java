@@ -7,12 +7,15 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.StageStyle;
+import src.components.cruncher.CruncherView;
 import src.components.input.FileInput;
 import src.main.Main;
 import src.utils.Constants;
 
 import java.io.File;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
@@ -94,7 +97,8 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		});
 
 		btnLinkCruncher.setOnAction(event -> {
-			crunchersList.getItems().add(cbCruncherNames.getValue());
+			String value = cbCruncherNames.getValue();
+			crunchersList.getItems().add(value);
 		});
 
 		btnUnlinkCruncher.setOnAction(event -> {
@@ -133,24 +137,36 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		});
 
 		btnStart.setOnAction(event -> {
-			String selectedDirectory = directoriesList.getSelectionModel().getSelectedItem();
-			System.out.println("selectedDirectory: " + selectedDirectory);
+			ObservableList<String> linkedDirs = directoriesList.getItems();
+			System.out.println("linkedDirs: " + linkedDirs);
 
-			if (selectedDirectory != null) {
-//				FileInput fileInput = new FileInput(selectedDirectory);
-//				app.getFileInputs().add(fileInput);
-//
-//				try {
-//					fileInput.traverseDirectory();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
+			ObservableList<String> linkedCrunchers = crunchersList.getItems();
+			System.out.println("linkedCrunchers: " + linkedCrunchers);
+
+			if (linkedDirs != null) {
+				ExecutorService threadPool = Executors.newCachedThreadPool();
+
+				FileInput fileInput = new FileInput(threadPool);
+				fileInput.getDirectories().addAll(linkedDirs);
+
+				for (CruncherView view : app.getCruncherViews()) {
+					for (String name : linkedCrunchers) {
+						if (view.getCruncherName().equals(name)) {
+							fileInput.getCruncherList().add(view);
+						}
+					}
+				}
+
+				Thread thread = new Thread(fileInput);
+				thread.start();
+
+				app.getFileInputs().add(fileInput);
 			} else {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.initStyle(StageStyle.UTILITY);
 				alert.setTitle("Error");
 				alert.setHeaderText("Error man");
-				alert.setContentText("You didn't selected any directory!");
+				alert.setContentText("You didn't select any directory!");
 				alert.showAndWait();
 			}
 

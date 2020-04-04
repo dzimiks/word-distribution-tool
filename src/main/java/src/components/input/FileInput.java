@@ -3,6 +3,7 @@ package src.components.input;
 
 import com.google.common.io.Files;
 import src.components.cruncher.CounterCruncher;
+import src.components.cruncher.CruncherView;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -17,7 +18,7 @@ public class FileInput implements Runnable {
 
 	private List<String> directories;
 	private BlockingQueue<String> filePathQueue;
-	private List<CounterCruncher> cruncherList;
+	private List<CruncherView> cruncherList;
 	private List<FileRef> files;
 	private ExecutorService threadPool;
 	private FileInputMiddleware fileInputMiddleware;
@@ -107,7 +108,7 @@ public class FileInput implements Runnable {
 		return directories;
 	}
 
-	public List<CounterCruncher> getCruncherList() {
+	public List<CruncherView> getCruncherList() {
 		return cruncherList;
 	}
 }

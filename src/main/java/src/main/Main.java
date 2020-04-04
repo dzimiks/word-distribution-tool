@@ -83,6 +83,7 @@ public class Main extends Application {
 	private Label crunchersLabel;
 	private Button addCruncherButton;
 	private int cruncherNameCounter;
+	private List<CruncherView> cruncherViews;
 
 	private BorderPane mainView;
 
@@ -121,6 +122,7 @@ public class Main extends Application {
 		this.mainView = new BorderPane();
 
 		this.fileInputs = new CopyOnWriteArrayList<>();
+		this.cruncherViews = new CopyOnWriteArrayList<>();
 
 		this.hBoxInputAndCruncher = new HBox();
 		this.hBoxInputAndCruncher.setSpacing(Constants.DEFAULT_PADDING);
@@ -178,6 +180,7 @@ public class Main extends Application {
 				}
 
 				this.vBoxCrunchers.getChildren().add(cruncherView);
+				this.cruncherViews.add(cruncherView);
 			}
 		});
 
@@ -548,5 +551,9 @@ public class Main extends Application {
 
 	public void setFileInputs(List<FileInput> fileInputs) {
 		this.fileInputs = fileInputs;
+	}
+
+	public List<CruncherView> getCruncherViews() {
+		return cruncherViews;
 	}
 }

@@ -1,6 +1,7 @@
 package src.components.input;
 
 import src.components.cruncher.CounterCruncher;
+import src.components.cruncher.CruncherView;
 
 import java.io.File;
 import java.util.List;
@@ -10,10 +11,10 @@ import java.util.concurrent.*;
 public class FileInputMiddleware implements Runnable {
 
 	private ExecutorService threadPool;
-	private List<CounterCruncher> cruncherList;
+	private List<CruncherView> cruncherList;
 	private BlockingQueue<String> filePathQueue;
 
-	public FileInputMiddleware(ExecutorService threadPool, List<CounterCruncher> cruncherList, BlockingQueue<String> filePathQueue) {
+	public FileInputMiddleware(ExecutorService threadPool, List<CruncherView> cruncherList, BlockingQueue<String> filePathQueue) {
 		this.threadPool = threadPool;
 		this.filePathQueue = filePathQueue;
 		this.cruncherList = cruncherList;
@@ -38,8 +39,8 @@ public class FileInputMiddleware implements Runnable {
 				}
 
 				cruncherList.forEach(cruncher -> {
-					cruncher.getInputBlockingQueue().add(map);
-					System.out.println("Cruncher " + cruncher.toString() + " size: " + cruncher.getInputBlockingQueue().size());
+					cruncher.getCruncher().getInputBlockingQueue().add(map);
+					System.out.println("[Cruncher] " + cruncher + " size: " + cruncher.getCruncher().getInputBlockingQueue().size());
 				});
 			} catch (ExecutionException | InterruptedException e) {
 				e.printStackTrace();
