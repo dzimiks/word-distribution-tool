@@ -30,7 +30,7 @@ public class FileInput implements Runnable {
 		this.filePathQueue = new LinkedBlockingQueue<>();
 		this.files = new CopyOnWriteArrayList<>();
 		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue);
-		System.out.println("FileInput init");
+		System.out.println("FileInput init\n");
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class FileInput implements Runnable {
 					if (file.getName().endsWith(".txt")) {
 						if (!contains(file)) {
 							String lastModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(file.lastModified()));
-							System.out.println("FileInput -> Found file: " + file.getPath() + " | Last modified: " + lastModified);
+							System.out.println("[FileInput] -> Found file: " + file.getPath() + " | Last modified: " + lastModified);
 
 							this.files.add(new FileRef(file.getAbsolutePath(), file.lastModified()));
 							this.filePathQueue.add(file.getAbsolutePath());
@@ -67,14 +67,14 @@ public class FileInput implements Runnable {
 							// TODO: Last modified is not working
 							for (int i = 0; i < files.size(); i++) {
 								FileRef currFile = files.get(i);
-								System.out.println("Seen: " + currFile.getPath());
+//								System.out.println("Seen: " + currFile.getPath());
 
 								if (currFile.getPath().equals(file.getAbsolutePath())) {
 									long currLastModified = currFile.getLastModified();
 									long fileLastModified = file.lastModified();
 
-									System.out.println("currLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currLastModified)));
-									System.out.println("fileLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(fileLastModified)));
+//									System.out.println("currLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currLastModified)));
+//									System.out.println("fileLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(fileLastModified)));
 
 									if (currLastModified != fileLastModified) {
 										files.set(i, new FileRef(file.getAbsolutePath(), file.lastModified()));

@@ -1,5 +1,7 @@
 package src.components.input;
 
+import javafx.application.Platform;
+import javafx.scene.control.Label;
 import src.components.cruncher.CounterCruncher;
 import src.components.cruncher.CruncherView;
 
@@ -32,15 +34,25 @@ public class FileInputMiddleware implements Runnable {
 				Future<Map<String, String>> result = threadPool.submit(fileInputWorker);
 				Map<String, String> map = result.get();
 
-				for (Map.Entry<String, String> entry : map.entrySet()) {
-					System.out.println("Future file path: " + entry.getKey());
-					System.out.println("Future file length: " + entry.getValue().length());
-					System.out.println();
-				}
-
 				cruncherList.forEach(cruncher -> {
 					cruncher.getCruncher().getInputBlockingQueue().add(map);
-					System.out.println("[Cruncher] " + cruncher + " size: " + cruncher.getCruncher().getInputBlockingQueue().size());
+					System.out.println("[Cruncher]: " + cruncher + " size: " + cruncher.getCruncher().getInputBlockingQueue().size());
+
+					for (Map.Entry<String, String> entry : map.entrySet()) {
+						String absolutePath = entry.getKey();
+						String[] parts = absolutePath.split(String.valueOf(File.separatorChar));
+						String filePath = parts[parts.length - 1];
+
+						System.out.println("[Future]: " + filePath + " => " + entry.getValue().length());
+						System.out.println();
+
+						Label inputFile = new Label(filePath);
+						cruncher.getFileNamesList().add(inputFile);
+
+						Platform.runLater(() -> {
+							cruncher.getChildren().add(inputFile);
+						});
+					}
 				});
 			} catch (ExecutionException | InterruptedException e) {
 				e.printStackTrace();

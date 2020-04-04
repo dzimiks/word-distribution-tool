@@ -143,7 +143,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 			ObservableList<String> linkedCrunchers = crunchersList.getItems();
 			System.out.println("linkedCrunchers: " + linkedCrunchers);
 
-			if (linkedDirs != null) {
+			if (!linkedDirs.isEmpty() && !linkedCrunchers.isEmpty()) {
 				ExecutorService threadPool = Executors.newCachedThreadPool();
 
 				FileInput fileInput = new FileInput(threadPool);
@@ -164,8 +164,8 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 			} else {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.initStyle(StageStyle.UTILITY);
-				alert.setTitle("Error");
-				alert.setHeaderText("Error man");
+				alert.setTitle("FileInput Error");
+				alert.setHeaderText("Error");
 				alert.setContentText("You didn't select any directory!");
 				alert.showAndWait();
 			}
