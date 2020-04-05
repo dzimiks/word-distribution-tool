@@ -78,6 +78,9 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		hbDirsSecondRow.getChildren().add(btnStart);
 
 		Label lblStatus = new Label("Idle");
+
+		// TODO: Change label idle
+		this.fileInput.setLblIdle(lblStatus);
 		this.fileInput.getFileInputMiddleware().setLblIdle(lblStatus);
 
 		// TODO: Actions

@@ -21,11 +21,12 @@ public class FileInputMiddleware implements Runnable {
 
 	public FileInputMiddleware(ExecutorService threadPool,
 							   List<CruncherView> cruncherList,
-							   BlockingQueue<String> filePathQueue) {
+							   BlockingQueue<String> filePathQueue,
+							   Label lblIdle) {
 		this.threadPool = threadPool;
 		this.filePathQueue = filePathQueue;
 		this.cruncherList = cruncherList;
-		this.lblIdle = new Label("Idle");
+		this.lblIdle = lblIdle;
 		System.out.println("FileInputMiddleware init");
 	}
 
@@ -43,7 +44,7 @@ public class FileInputMiddleware implements Runnable {
 				Platform.runLater(() -> {
 					String[] parts = fileName.split(String.valueOf(File.separatorChar));
 					String filePath = parts[parts.length - 1];
-					lblIdle.setText(filePath);
+					lblIdle.setText("Reading: " + filePath);
 				});
 
 				cruncherList.forEach(cruncher -> {

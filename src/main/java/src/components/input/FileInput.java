@@ -2,6 +2,7 @@ package src.components.input;
 
 
 import com.google.common.io.Files;
+import javafx.application.Platform;
 import javafx.scene.control.Label;
 import src.components.cruncher.CruncherView;
 import src.main.Main;
@@ -21,6 +22,7 @@ public class FileInput implements Runnable {
 	private ConcurrentHashMap<String, Long> seenFiles;
 	private ExecutorService threadPool;
 	private FileInputMiddleware fileInputMiddleware;
+	private Label lblIdle;
 
 	public FileInput(ExecutorService threadPool) {
 		this.threadPool = threadPool;
@@ -28,7 +30,8 @@ public class FileInput implements Runnable {
 		this.directories = new CopyOnWriteArrayList<>();
 		this.filePathQueue = new LinkedBlockingQueue<>();
 		this.seenFiles = new ConcurrentHashMap<>();
-		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue);
+		this.lblIdle = new Label("Idle");
+		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue, lblIdle);
 		System.out.println("FileInput init\n");
 	}
 
@@ -59,6 +62,8 @@ public class FileInput implements Runnable {
 
 				for (File file : Files.fileTraverser().depthFirstPreOrder(rootDir)) {
 					String fileName = file.getName();
+					String[] parts = fileName.split(String.valueOf(File.separatorChar));
+					String filePath = parts[parts.length - 1];
 
 					if (fileName.endsWith(".txt")) {
 						String absolutePath = file.getAbsolutePath();
@@ -66,11 +71,13 @@ public class FileInput implements Runnable {
 
 						if (!seenFiles.containsKey(absolutePath)) {
 							String lastModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currentTime));
-							System.out.println("[FileInput] -> Found file: " + file.getPath() + " | Last modified: " + lastModified);
+							System.out.println("[FileInput] -> Found file: " + filePath + " | Last modified: " + lastModified);
 
 							this.seenFiles.put(absolutePath, currentTime);
 							this.filePathQueue.add(absolutePath);
 							fileNumber.incrementAndGet();
+
+							Platform.runLater(() -> lblIdle.setText("Reading: " + filePath));
 						} else {
 							Long oldTime = seenFiles.get(absolutePath);
 
@@ -81,6 +88,9 @@ public class FileInput implements Runnable {
 
 								seenFiles.put(absolutePath, currentTime);
 								System.out.println(">>> File " + fileName + " is replaced!");
+								Platform.runLater(() -> lblIdle.setText("Reading: " + filePath));
+							} else {
+								Platform.runLater(() -> lblIdle.setText("Idle"));
 							}
 						}
 					}
@@ -104,5 +114,13 @@ public class FileInput implements Runnable {
 
 	public FileInputMiddleware getFileInputMiddleware() {
 		return fileInputMiddleware;
+	}
+
+	public Label getLblIdle() {
+		return lblIdle;
+	}
+
+	public void setLblIdle(Label lblIdle) {
+		this.lblIdle = lblIdle;
 	}
 }
