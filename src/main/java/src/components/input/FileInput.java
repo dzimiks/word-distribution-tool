@@ -2,8 +2,8 @@ package src.components.input;
 
 
 import com.google.common.io.Files;
-import src.components.cruncher.CounterCruncher;
 import src.components.cruncher.CruncherView;
+import src.main.Main;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -14,12 +14,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class FileInput implements Runnable {
 
-	private static int FILE_INPUT_SLEEP_TIME = 5000;
-
 	private List<String> directories;
 	private BlockingQueue<String> filePathQueue;
 	private List<CruncherView> cruncherList;
-	private List<FileRef> files;
+	private ConcurrentHashMap<String, Long> seenFiles;
 	private ExecutorService threadPool;
 	private FileInputMiddleware fileInputMiddleware;
 
@@ -28,7 +26,7 @@ public class FileInput implements Runnable {
 		this.cruncherList = new CopyOnWriteArrayList<>();
 		this.directories = new CopyOnWriteArrayList<>();
 		this.filePathQueue = new LinkedBlockingQueue<>();
-		this.files = new CopyOnWriteArrayList<>();
+		this.seenFiles = new ConcurrentHashMap<>();
 		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue);
 		System.out.println("FileInput init\n");
 	}
@@ -49,38 +47,39 @@ public class FileInput implements Runnable {
 	}
 
 	public void traverseDirectories() throws InterruptedException {
-		while (true) {
+		if (directories.contains("STOP")) {
+			directories.remove("STOP");
+		}
+
+		while (!directories.contains("STOP")) {
 			for (String directory : directories) {
 				File rootDir = new File(directory);
 				AtomicInteger fileNumber = new AtomicInteger(0);
 
 				for (File file : Files.fileTraverser().depthFirstPreOrder(rootDir)) {
-					if (file.getName().endsWith(".txt")) {
-						if (!contains(file)) {
-							String lastModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(file.lastModified()));
+					String fileName = file.getName();
+
+					if (fileName.endsWith(".txt")) {
+						String absolutePath = file.getAbsolutePath();
+						long currentTime = file.lastModified();
+
+						if (!seenFiles.containsKey(absolutePath)) {
+							String lastModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currentTime));
 							System.out.println("[FileInput] -> Found file: " + file.getPath() + " | Last modified: " + lastModified);
 
-							this.files.add(new FileRef(file.getAbsolutePath(), file.lastModified()));
-							this.filePathQueue.add(file.getAbsolutePath());
+							this.seenFiles.put(absolutePath, currentTime);
+							this.filePathQueue.add(absolutePath);
 							fileNumber.incrementAndGet();
 						} else {
-							// TODO: Last modified is not working
-							for (int i = 0; i < files.size(); i++) {
-								FileRef currFile = files.get(i);
-//								System.out.println("Seen: " + currFile.getPath());
+							Long oldTime = seenFiles.get(absolutePath);
 
-								if (currFile.getPath().equals(file.getAbsolutePath())) {
-									long currLastModified = currFile.getLastModified();
-									long fileLastModified = file.lastModified();
+							if (!oldTime.equals(currentTime)) {
+								System.out.println("Seen: " + fileName);
+								System.out.println("oldTime: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(oldTime)));
+								System.out.println("currentTime: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currentTime)));
 
-//									System.out.println("currLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currLastModified)));
-//									System.out.println("fileLastModified: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(fileLastModified)));
-
-									if (currLastModified != fileLastModified) {
-										files.set(i, new FileRef(file.getAbsolutePath(), file.lastModified()));
-										System.out.println(">>> File " + file.getName() + " is replaced!");
-									}
-								}
+								seenFiles.put(absolutePath, currentTime);
+								System.out.println(">>> File " + fileName + " is replaced!");
 							}
 						}
 					}
@@ -89,19 +88,9 @@ public class FileInput implements Runnable {
 				System.out.println("Found " + fileNumber.get() + " files so far...");
 			}
 
-			System.out.println("FileInput -> Waiting " + (FILE_INPUT_SLEEP_TIME / 1000) + " seconds...");
-			Thread.sleep(FILE_INPUT_SLEEP_TIME);
+			System.out.println("FileInput -> Waiting " + (Main.FILE_INPUT_SLEEP_TIME / 1000) + " seconds...");
+			Thread.sleep(Main.FILE_INPUT_SLEEP_TIME);
 		}
-	}
-
-	public boolean contains(File file) {
-		for (FileRef f : files) {
-			if (f.getPath().equals(file.getAbsolutePath())) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	public List<String> getDirectories() {

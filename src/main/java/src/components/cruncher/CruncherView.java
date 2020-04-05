@@ -26,13 +26,12 @@ public class CruncherView extends VBox {
 		this.lblCruncherArity = new Label("Arity: " + arity);
 		this.btnRemoveCruncher = new Button("Remove Cruncher");
 		this.fileNamesList = new CopyOnWriteArrayList<>();
-		this.fileNamesList.add(new Label("dzimiks"));
+		this.fileNamesList.add(new Label("Crunching:"));
 
 		this.setSpacing(Constants.DEFAULT_PADDING);
 		this.setPadding(new Insets(Constants.DEFAULT_PADDING, 0, 0, 0));
 
 		this.getChildren().addAll(lblCruncherName, lblCruncherArity, btnRemoveCruncher);
-		this.fileNamesList.forEach(fileName -> this.getChildren().add(fileName));
 	}
 
 	public String getCruncherName() {

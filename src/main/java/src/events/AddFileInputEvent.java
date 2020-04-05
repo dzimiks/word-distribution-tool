@@ -15,14 +15,17 @@ import src.utils.Constants;
 import java.io.File;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
 	private Main app;
+	private ExecutorService threadPool;
+	private FileInput fileInput;
 
-	public AddFileInputEvent(Main app) {
+	public AddFileInputEvent(Main app, ExecutorService threadPool) {
 		this.app = app;
+		this.threadPool = threadPool;
+		this.fileInput = new FileInput(threadPool);
 		System.out.println("AddFileInputEvent init");
 	}
 
@@ -137,37 +140,42 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		});
 
 		btnStart.setOnAction(event -> {
-			ObservableList<String> linkedDirs = directoriesList.getItems();
-			System.out.println("linkedDirs: " + linkedDirs);
+			if (btnStart.getText().equals("Start")) {
+				ObservableList<String> linkedDirs = directoriesList.getItems();
+				System.out.println("linkedDirs: " + linkedDirs);
 
-			ObservableList<String> linkedCrunchers = crunchersList.getItems();
-			System.out.println("linkedCrunchers: " + linkedCrunchers);
+				ObservableList<String> linkedCrunchers = crunchersList.getItems();
+				System.out.println("linkedCrunchers: " + linkedCrunchers);
 
-			if (!linkedDirs.isEmpty() && !linkedCrunchers.isEmpty()) {
-				ExecutorService threadPool = Executors.newCachedThreadPool();
+				if (!linkedDirs.isEmpty() && !linkedCrunchers.isEmpty()) {
+					btnStart.setText("Pause");
 
-				FileInput fileInput = new FileInput(threadPool);
-				fileInput.getDirectories().addAll(linkedDirs);
+					// TODO: File Input
+					fileInput.getDirectories().addAll(linkedDirs);
 
-				for (CruncherView view : app.getCruncherViews()) {
-					for (String name : linkedCrunchers) {
-						if (view.getCruncherName().equals(name)) {
-							fileInput.getCruncherList().add(view);
+					for (CruncherView view : app.getCruncherViews()) {
+						for (String name : linkedCrunchers) {
+							if (view.getCruncherName().equals(name)) {
+								fileInput.getCruncherList().add(view);
+							}
 						}
 					}
+
+					Thread thread = new Thread(fileInput);
+					thread.start();
+
+					app.getFileInputs().add(fileInput);
+				} else {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.initStyle(StageStyle.UTILITY);
+					alert.setTitle("FileInput Error");
+					alert.setHeaderText("Error");
+					alert.setContentText("You didn't select any directory!");
+					alert.showAndWait();
 				}
-
-				Thread thread = new Thread(fileInput);
-				thread.start();
-
-				app.getFileInputs().add(fileInput);
 			} else {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.initStyle(StageStyle.UTILITY);
-				alert.setTitle("FileInput Error");
-				alert.setHeaderText("Error");
-				alert.setContentText("You didn't select any directory!");
-				alert.showAndWait();
+				btnStart.setText("Start");
+				fileInput.getDirectories().add("STOP");
 			}
 
 //			try {

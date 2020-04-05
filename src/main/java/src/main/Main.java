@@ -25,13 +25,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main extends Application {
 
-	private int FILE_INPUT_SLEEP_TIME;
-	private int COUNTER_DATA_LIMIT;
-	private int SORT_PROGRESS_LIMIT;
-	private String[] DISKS;
+	public static int FILE_INPUT_SLEEP_TIME;
+	public static int COUNTER_DATA_LIMIT;
+	public static int SORT_PROGRESS_LIMIT;
+	public static String[] DISKS;
 
 	// Setup
 	private InputStream inputStream;
@@ -92,6 +94,7 @@ public class Main extends Application {
 	private ListView<String> resultList;
 	private Button btnSingleResult;
 	private Button btnSumResult;
+	private ExecutorService fileInputThreadPool;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -99,6 +102,8 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage stage) throws Exception {
+		this.fileInputThreadPool = Executors.newCachedThreadPool();
+
 		// Init view
 		initView();
 
@@ -150,7 +155,7 @@ public class Main extends Application {
 		this.fileInputLabel = new Label("File inputs");
 		this.comboBoxFileInput = new ComboBox<>();
 		this.addFileInputButton = new Button("Add File Input");
-		this.addFileInputButton.setOnAction(new AddFileInputEvent(this));
+		this.addFileInputButton.setOnAction(new AddFileInputEvent(this, fileInputThreadPool));
 
 		this.vBoxFileInput.getChildren().add(fileInputLabel);
 		this.vBoxFileInput.getChildren().add(comboBoxFileInput);

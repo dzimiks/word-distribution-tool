@@ -2,13 +2,15 @@ package src.components.input;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
-import src.components.cruncher.CounterCruncher;
 import src.components.cruncher.CruncherView;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 public class FileInputMiddleware implements Runnable {
 
