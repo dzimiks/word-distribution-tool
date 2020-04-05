@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 public class Main extends Application {
 
@@ -94,7 +95,11 @@ public class Main extends Application {
 	private ListView<String> resultList;
 	private Button btnSingleResult;
 	private Button btnSumResult;
-	private ExecutorService fileInputThreadPool;
+
+
+	private ExecutorService inputThreadPool;
+	private ExecutorService cruncherThreadPool;
+	private ExecutorService outputThreadPool;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -102,7 +107,8 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		this.fileInputThreadPool = Executors.newCachedThreadPool();
+		this.inputThreadPool = Executors.newCachedThreadPool();
+		this.cruncherThreadPool = Executors.newCachedThreadPool();
 
 		// Init view
 		initView();
@@ -155,7 +161,7 @@ public class Main extends Application {
 		this.fileInputLabel = new Label("File inputs");
 		this.comboBoxFileInput = new ComboBox<>();
 		this.addFileInputButton = new Button("Add File Input");
-		this.addFileInputButton.setOnAction(new AddFileInputEvent(this, fileInputThreadPool));
+		this.addFileInputButton.setOnAction(new AddFileInputEvent(this, inputThreadPool));
 
 		this.vBoxFileInput.getChildren().add(fileInputLabel);
 		this.vBoxFileInput.getChildren().add(comboBoxFileInput);
@@ -177,7 +183,7 @@ public class Main extends Application {
 
 			if (textInputDialog.showAndWait().isPresent() && !textInputDialog.getEditor().getText().equals("")) {
 				String cruncherName = "Cruncher " + (cruncherNameCounter++);
-				CruncherView cruncherView = new CruncherView(cruncherName, textInputDialog.getEditor().getText());
+				CruncherView cruncherView = new CruncherView(cruncherThreadPool, cruncherName, textInputDialog.getEditor().getText());
 
 				for (ComboBox<String> comboBox : allCrunchersList) {
 					comboBox.getItems().add(cruncherName);

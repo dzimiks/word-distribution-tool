@@ -27,12 +27,11 @@ public class FileInputMiddleware implements Runnable {
 		this.filePathQueue = filePathQueue;
 		this.cruncherList = cruncherList;
 		this.lblIdle = lblIdle;
-		System.out.println("FileInputMiddleware init");
+		System.out.println("FileInputMiddleware init\n");
 	}
 
 	@Override
 	public void run() {
-		// TODO: Add file to worker
 		while (true) {
 			try {
 				String fileName = filePathQueue.take();

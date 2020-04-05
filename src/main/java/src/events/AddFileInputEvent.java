@@ -27,7 +27,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		this.app = app;
 		this.threadPool = threadPool;
 		this.fileInput = new FileInput(threadPool);
-		System.out.println("AddFileInputEvent init");
+		System.out.println("AddFileInputEvent init\n");
 	}
 
 	@Override
@@ -180,7 +180,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 					alert.showAndWait();
 				}
 			} else {
-				System.out.println("Stopped File Input");
+				System.out.println("Paused File Input");
 				btnStart.setText("Start");
 				fileInput.getDirectories().add("STOP");
 			}

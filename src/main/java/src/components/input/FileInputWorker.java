@@ -14,7 +14,7 @@ public class FileInputWorker implements Callable<Map<String, String>> {
 
 	public FileInputWorker(File inputFile) {
 		this.inputFile = inputFile;
-		System.out.println("FileInputWorker init");
+		System.out.println("FileInputWorker init\n");
 	}
 
 	@Override

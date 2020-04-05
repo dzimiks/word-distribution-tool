@@ -8,6 +8,8 @@ import src.utils.Constants;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 public class CruncherView extends VBox {
 
@@ -18,9 +20,12 @@ public class CruncherView extends VBox {
 	private List<Label> fileNamesList;
 	private CounterCruncher cruncher;
 
-	public CruncherView(String cruncherName, String arity) {
+	private ExecutorService threadPool;
+
+	public CruncherView(ExecutorService threadPool, String cruncherName, String arity) {
+		this.threadPool = threadPool;
 		this.cruncherName = cruncherName;
-		this.cruncher = new CounterCruncher();
+		this.cruncher = new CounterCruncher(threadPool, Integer.parseInt(arity));
 
 		this.lblCruncherName = new Label("Name: " + cruncherName);
 		this.lblCruncherArity = new Label("Arity: " + arity);
@@ -32,6 +37,9 @@ public class CruncherView extends VBox {
 		this.setPadding(new Insets(Constants.DEFAULT_PADDING, 0, 0, 0));
 
 		this.getChildren().addAll(lblCruncherName, lblCruncherArity, btnRemoveCruncher);
+
+		Thread thread = new Thread(cruncher);
+		thread.start();
 	}
 
 	public String getCruncherName() {
