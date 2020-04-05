@@ -17,11 +17,15 @@ public class FileInputMiddleware implements Runnable {
 	private ExecutorService threadPool;
 	private List<CruncherView> cruncherList;
 	private BlockingQueue<String> filePathQueue;
+	private Label lblIdle;
 
-	public FileInputMiddleware(ExecutorService threadPool, List<CruncherView> cruncherList, BlockingQueue<String> filePathQueue) {
+	public FileInputMiddleware(ExecutorService threadPool,
+							   List<CruncherView> cruncherList,
+							   BlockingQueue<String> filePathQueue) {
 		this.threadPool = threadPool;
 		this.filePathQueue = filePathQueue;
 		this.cruncherList = cruncherList;
+		this.lblIdle = new Label("Idle");
 		System.out.println("FileInputMiddleware init");
 	}
 
@@ -35,6 +39,12 @@ public class FileInputMiddleware implements Runnable {
 				FileInputWorker fileInputWorker = new FileInputWorker(file);
 				Future<Map<String, String>> result = threadPool.submit(fileInputWorker);
 				Map<String, String> map = result.get();
+
+				Platform.runLater(() -> {
+					String[] parts = fileName.split(String.valueOf(File.separatorChar));
+					String filePath = parts[parts.length - 1];
+					lblIdle.setText(filePath);
+				});
 
 				cruncherList.forEach(cruncher -> {
 					cruncher.getCruncher().getInputBlockingQueue().add(map);
@@ -51,14 +61,20 @@ public class FileInputMiddleware implements Runnable {
 						Label inputFile = new Label(filePath);
 						cruncher.getFileNamesList().add(inputFile);
 
-						Platform.runLater(() -> {
-							cruncher.getChildren().add(inputFile);
-						});
+						Platform.runLater(() -> cruncher.getChildren().add(inputFile));
 					}
 				});
 			} catch (ExecutionException | InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public Label getLblIdle() {
+		return lblIdle;
+	}
+
+	public void setLblIdle(Label lblIdle) {
+		this.lblIdle = lblIdle;
 	}
 }

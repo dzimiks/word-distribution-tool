@@ -1,5 +1,6 @@
 package src.events;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -77,6 +78,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 		hbDirsSecondRow.getChildren().add(btnStart);
 
 		Label lblStatus = new Label("Idle");
+		this.fileInput.getFileInputMiddleware().setLblIdle(lblStatus);
 
 		// TODO: Actions
 		crunchersList.setOnMouseClicked(event -> {
@@ -148,6 +150,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 				System.out.println("linkedCrunchers: " + linkedCrunchers);
 
 				if (!linkedDirs.isEmpty() && !linkedCrunchers.isEmpty()) {
+					System.out.println("Started File Input");
 					btnStart.setText("Pause");
 
 					// TODO: File Input
@@ -174,6 +177,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 					alert.showAndWait();
 				}
 			} else {
+				System.out.println("Stopped File Input");
 				btnStart.setText("Start");
 				fileInput.getDirectories().add("STOP");
 			}

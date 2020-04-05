@@ -2,6 +2,7 @@ package src.components.input;
 
 
 import com.google.common.io.Files;
+import javafx.scene.control.Label;
 import src.components.cruncher.CruncherView;
 import src.main.Main;
 
@@ -99,5 +100,9 @@ public class FileInput implements Runnable {
 
 	public List<CruncherView> getCruncherList() {
 		return cruncherList;
+	}
+
+	public FileInputMiddleware getFileInputMiddleware() {
+		return fileInputMiddleware;
 	}
 }
