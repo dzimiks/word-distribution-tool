@@ -5,21 +5,24 @@ import com.google.common.collect.Multiset;
 
 import java.io.File;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class CruncherMiddleware implements Runnable {
 
 	private ExecutorService threadPool;
 	private BlockingQueue<Map<String, String>> inputBlockingQueue;
+	private BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue;
 	private int arity;
 
-	public CruncherMiddleware(ExecutorService threadPool, int arity, BlockingQueue<Map<String, String>> inputBlockingQueue) {
+	public CruncherMiddleware(ExecutorService threadPool,
+							  int arity,
+							  BlockingQueue<Map<String, String>> inputBlockingQueue,
+							  BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue) {
 		this.threadPool = threadPool;
 		this.arity = arity;
 		this.inputBlockingQueue = inputBlockingQueue;
+		this.outputBlockingQueue = outputBlockingQueue;
+
 		System.out.println("CruncherMiddleware init\n");
 	}
 
@@ -30,8 +33,14 @@ public class CruncherMiddleware implements Runnable {
 				Map<String, String> input = inputBlockingQueue.take();
 
 				for (Map.Entry<String, String> entry : input.entrySet()) {
-					String[] parts = entry.getKey().split(String.valueOf(File.separatorChar));
+					String fileAbsolutePath = entry.getKey();
+					String[] parts = fileAbsolutePath.split(String.valueOf(File.separatorChar));
 					String filePath = parts[parts.length - 1];
+
+					// TODO: Send result to output
+//					Map<String, ImmutableList<Multiset.Entry<Object>>> outputMap = new ConcurrentHashMap<>();
+//					outputMap.put(fileAbsolutePath, null);
+//					outputBlockingQueue.put(outputMap);
 
 					System.out.println("Crunching " + filePath + "...");
 
@@ -43,8 +52,8 @@ public class CruncherMiddleware implements Runnable {
 						String key = value.getKey();
 						ImmutableList<Multiset.Entry<Object>> val = value.getValue();
 
-//						System.out.println(">>> " + key);
-						System.out.println(">>> " + key + " ===> " + val);
+						System.out.println(">>> " + key);
+//						System.out.println(">>> " + key + " ===> " + val);
 					}
 				}
 			} catch (InterruptedException | ExecutionException e) {

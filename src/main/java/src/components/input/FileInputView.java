@@ -1,37 +1,35 @@
-package src.events;
+package src.components.input;
 
-import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.StageStyle;
 import src.components.cruncher.CruncherView;
-import src.components.input.FileInput;
 import src.main.Main;
 import src.utils.Constants;
 
 import java.io.File;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 
-public class AddFileInputEvent implements EventHandler<ActionEvent> {
+public class FileInputView extends VBox {
 
 	private Main app;
 	private ExecutorService threadPool;
 	private FileInput fileInput;
 
-	public AddFileInputEvent(Main app, ExecutorService threadPool) {
-		this.app = app;
+	public FileInputView(ExecutorService threadPool, Main app) {
 		this.threadPool = threadPool;
+		this.app = app;
 		this.fileInput = new FileInput(threadPool);
+
+		init();
+
 		System.out.println("AddFileInputEvent init\n");
 	}
 
-	@Override
-	public void handle(ActionEvent actionEvent) {
+	private void init() {
 		// Crunchers
 		Label lblFileInput = new Label("File Input: " + app.getComboBoxFileInput().getValue());
 		Label lblCrunchersLabel = new Label("Crunchers:");
@@ -44,6 +42,8 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
 		Button btnLinkCruncher = new Button("Link Cruncher");
 		Button btnUnlinkCruncher = new Button("Unlink Cruncher");
+
+		btnLinkCruncher.setDisable(true);
 		btnUnlinkCruncher.setDisable(true);
 
 		HBox hbFileInputRow = new HBox();
@@ -104,9 +104,31 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 			}
 		});
 
+		cbCruncherNames.valueProperty().addListener(event -> {
+			String value = cbCruncherNames.getValue();
+			System.out.println("CB changed to " + value);
+
+			if (crunchersList.getItems().contains(value)) {
+				btnLinkCruncher.setDisable(true);
+			} else {
+				btnLinkCruncher.setDisable(false);
+			}
+		});
+
 		btnLinkCruncher.setOnAction(event -> {
 			String value = cbCruncherNames.getValue();
-			crunchersList.getItems().add(value);
+
+			if (!crunchersList.getItems().contains(value)) {
+				crunchersList.getItems().add(value);
+				btnLinkCruncher.setDisable(true);
+			} else {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.initStyle(StageStyle.UTILITY);
+				alert.setTitle("Link Cruncher Error");
+				alert.setHeaderText("Error");
+				alert.setContentText("Cruncher '" + value + "' has been linked already!");
+				alert.showAndWait();
+			}
 		});
 
 		btnUnlinkCruncher.setOnAction(event -> {
@@ -117,6 +139,7 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 				for (String cruncher : selectedCrunchers) {
 					crunchersList.getItems().remove(cruncher);
 					System.out.println("Cruncher: " + cruncher + " is removed!");
+					btnUnlinkCruncher.setDisable(true);
 				}
 			}
 		});
@@ -125,7 +148,19 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 			DirectoryChooser directoryChooser = new DirectoryChooser();
 			directoryChooser.setInitialDirectory(new File("data/disk1/"));
 			File selectedFile = directoryChooser.showDialog(null);
-			directoriesList.getItems().add(selectedFile.getAbsolutePath());
+
+			String value = selectedFile.getAbsolutePath();
+
+			if (!directoriesList.getItems().contains(value)) {
+				directoriesList.getItems().add(selectedFile.getAbsolutePath());
+			} else {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.initStyle(StageStyle.UTILITY);
+				alert.setTitle("Add Directory Error");
+				alert.setHeaderText("Error");
+				alert.setContentText("Directory '" + value + "' has been added already!");
+				alert.showAndWait();
+			}
 		});
 
 		btnRemoveDirectory.setOnAction(event -> {
@@ -133,13 +168,10 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 			System.out.println("SELECTED DIRECTORIES: " + selectedDirectories);
 
 			if (!selectedDirectories.isEmpty()) {
-				try {
-					for (String directory : selectedDirectories) {
-						directoriesList.getItems().remove(directory);
-						System.out.println("Directory: " + directory + " is removed!");
-					}
-				} catch (NoSuchElementException e) {
-					System.err.println("btnRemoveDirectory - NoSuchElementException!");
+				for (String directory : selectedDirectories) {
+					directoriesList.getItems().remove(directory);
+					System.out.println("Directory: " + directory + " is removed!");
+					btnRemoveDirectory.setDisable(true);
 				}
 			}
 		});
@@ -169,8 +201,6 @@ public class AddFileInputEvent implements EventHandler<ActionEvent> {
 
 					Thread thread = new Thread(fileInput);
 					thread.start();
-
-					app.getFileInputs().add(fileInput);
 				} else {
 					Alert alert = new Alert(Alert.AlertType.ERROR);
 					alert.initStyle(StageStyle.UTILITY);

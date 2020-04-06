@@ -13,8 +13,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import src.components.cruncher.CruncherView;
-import src.components.input.FileInput;
-import src.events.AddFileInputEvent;
+import src.components.input.FileInputView;
+import src.components.output.OutputView;
 import src.utils.Constants;
 
 import java.io.FileInputStream;
@@ -27,7 +27,6 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 
 public class Main extends Application {
 
@@ -64,23 +63,11 @@ public class Main extends Application {
 	private Button btnLinkCruncher;
 	private Button btnUnlinkCruncher;
 
-	private Label directoriesLabel;
-	private ListView<String> directoriesList;
-	private ComboBox<String> cbDirectoriesNames;
-	private Button btnAddDirectory;
-	private Button btnRemoveDirectory;
-	private Button btnRemoveDiskInput;
-	private Button btnStart;
-
-	private HBox hbDirsFirstRow;
-	private HBox hbDirsSecondRow;
-	private Label lblStatus;
-
 	// FileInput
 	private Label fileInputLabel;
 	private ComboBox<String> comboBoxFileInput;
 	private Button addFileInputButton;
-	private List<FileInput> fileInputs;
+	private List<FileInputView> fileInputs;
 
 	// Crunchers
 	private Label crunchersLabel;
@@ -90,12 +77,8 @@ public class Main extends Application {
 
 	private BorderPane mainView;
 
-	// Result
-	private VBox vbResult;
-	private ListView<String> resultList;
-	private Button btnSingleResult;
-	private Button btnSumResult;
-
+	// Output
+	private OutputView outputView;
 
 	private ExecutorService inputThreadPool;
 	private ExecutorService cruncherThreadPool;
@@ -109,6 +92,8 @@ public class Main extends Application {
 	public void start(Stage stage) throws Exception {
 		this.inputThreadPool = Executors.newCachedThreadPool();
 		this.cruncherThreadPool = Executors.newCachedThreadPool();
+//		this.cruncherThreadPool = new ForkJoinPool();
+		this.outputThreadPool = Executors.newCachedThreadPool();
 
 		// Init view
 		initView();
@@ -145,23 +130,14 @@ public class Main extends Application {
 		this.vBoxFileInput.setSpacing(Constants.DEFAULT_PADDING);
 		this.vBoxFileInput.setPadding(new Insets(Constants.DEFAULT_PADDING));
 
-		this.vbResult = new VBox();
-		this.vbResult.setSpacing(Constants.DEFAULT_PADDING);
-		this.vbResult.setPadding(new Insets(Constants.DEFAULT_PADDING));
-
-		this.resultList = new ListView<>();
-		this.resultList.setMaxSize(200, 500);
-		this.resultList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-		this.btnSingleResult = new Button("Single Result");
-		this.btnSumResult = new Button("Sum Result");
-
-		this.vbResult.getChildren().addAll(resultList, btnSingleResult, btnSumResult);
-
 		this.fileInputLabel = new Label("File inputs");
 		this.comboBoxFileInput = new ComboBox<>();
 		this.addFileInputButton = new Button("Add File Input");
-		this.addFileInputButton.setOnAction(new AddFileInputEvent(this, inputThreadPool));
+
+		this.addFileInputButton.setOnAction(event -> {
+			FileInputView fileInputView = new FileInputView(inputThreadPool, this);
+			this.fileInputs.add(fileInputView);
+		});
 
 		this.vBoxFileInput.getChildren().add(fileInputLabel);
 		this.vBoxFileInput.getChildren().add(comboBoxFileInput);
@@ -224,7 +200,9 @@ public class Main extends Application {
 		// Set views
 		this.mainView.setLeft(hBoxInputAndCruncher);
 		this.mainView.setCenter(lineChart);
-		this.mainView.setRight(vbResult);
+
+		this.outputView = new OutputView(outputThreadPool);
+		this.mainView.setRight(outputView);
 	}
 
 	public void loadData() throws IOException {
@@ -242,38 +220,6 @@ public class Main extends Application {
 		this.comboBoxFileInput.getItems().addAll(DISKS);
 		this.comboBoxFileInput.getSelectionModel().select(0);
 		this.inputStream.close();
-	}
-
-	public int getFILE_INPUT_SLEEP_TIME() {
-		return FILE_INPUT_SLEEP_TIME;
-	}
-
-	public void setFILE_INPUT_SLEEP_TIME(int FILE_INPUT_SLEEP_TIME) {
-		this.FILE_INPUT_SLEEP_TIME = FILE_INPUT_SLEEP_TIME;
-	}
-
-	public int getCOUNTER_DATA_LIMIT() {
-		return COUNTER_DATA_LIMIT;
-	}
-
-	public void setCOUNTER_DATA_LIMIT(int COUNTER_DATA_LIMIT) {
-		this.COUNTER_DATA_LIMIT = COUNTER_DATA_LIMIT;
-	}
-
-	public int getSORT_PROGRESS_LIMIT() {
-		return SORT_PROGRESS_LIMIT;
-	}
-
-	public void setSORT_PROGRESS_LIMIT(int SORT_PROGRESS_LIMIT) {
-		this.SORT_PROGRESS_LIMIT = SORT_PROGRESS_LIMIT;
-	}
-
-	public String[] getDISKS() {
-		return DISKS;
-	}
-
-	public void setDISKS(String[] DISKS) {
-		this.DISKS = DISKS;
 	}
 
 	public InputStream getInputStream() {
@@ -420,86 +366,6 @@ public class Main extends Application {
 		this.btnUnlinkCruncher = btnUnlinkCruncher;
 	}
 
-	public Label getDirectoriesLabel() {
-		return directoriesLabel;
-	}
-
-	public void setDirectoriesLabel(Label directoriesLabel) {
-		this.directoriesLabel = directoriesLabel;
-	}
-
-	public ListView<String> getDirectoriesList() {
-		return directoriesList;
-	}
-
-	public void setDirectoriesList(ListView<String> directoriesList) {
-		this.directoriesList = directoriesList;
-	}
-
-	public ComboBox<String> getCbDirectoriesNames() {
-		return cbDirectoriesNames;
-	}
-
-	public void setCbDirectoriesNames(ComboBox<String> cbDirectoriesNames) {
-		this.cbDirectoriesNames = cbDirectoriesNames;
-	}
-
-	public Button getBtnAddDirectory() {
-		return btnAddDirectory;
-	}
-
-	public void setBtnAddDirectory(Button btnAddDirectory) {
-		this.btnAddDirectory = btnAddDirectory;
-	}
-
-	public Button getBtnRemoveDirectory() {
-		return btnRemoveDirectory;
-	}
-
-	public void setBtnRemoveDirectory(Button btnRemoveDirectory) {
-		this.btnRemoveDirectory = btnRemoveDirectory;
-	}
-
-	public Button getBtnRemoveDiskInput() {
-		return btnRemoveDiskInput;
-	}
-
-	public void setBtnRemoveDiskInput(Button btnRemoveDiskInput) {
-		this.btnRemoveDiskInput = btnRemoveDiskInput;
-	}
-
-	public Button getBtnStart() {
-		return btnStart;
-	}
-
-	public void setBtnStart(Button btnStart) {
-		this.btnStart = btnStart;
-	}
-
-	public HBox getHbDirsFirstRow() {
-		return hbDirsFirstRow;
-	}
-
-	public void setHbDirsFirstRow(HBox hbDirsFirstRow) {
-		this.hbDirsFirstRow = hbDirsFirstRow;
-	}
-
-	public HBox getHbDirsSecondRow() {
-		return hbDirsSecondRow;
-	}
-
-	public void setHbDirsSecondRow(HBox hbDirsSecondRow) {
-		this.hbDirsSecondRow = hbDirsSecondRow;
-	}
-
-	public Label getLblStatus() {
-		return lblStatus;
-	}
-
-	public void setLblStatus(Label lblStatus) {
-		this.lblStatus = lblStatus;
-	}
-
 	public Label getFileInputLabel() {
 		return fileInputLabel;
 	}
@@ -556,11 +422,11 @@ public class Main extends Application {
 		this.allCrunchersList = allCrunchersList;
 	}
 
-	public List<FileInput> getFileInputs() {
+	public List<FileInputView> getFileInputs() {
 		return fileInputs;
 	}
 
-	public void setFileInputs(List<FileInput> fileInputs) {
+	public void setFileInputs(List<FileInputView> fileInputs) {
 		this.fileInputs = fileInputs;
 	}
 

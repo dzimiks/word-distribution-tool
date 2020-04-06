@@ -9,6 +9,7 @@ import java.util.concurrent.*;
 public class CounterCruncher implements Runnable {
 
 	private BlockingQueue<Map<String, String>> inputBlockingQueue;
+	private BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue;
 	private ExecutorService threadPool;
 	private CruncherMiddleware cruncherMiddleware;
 	private int arity;
@@ -17,7 +18,8 @@ public class CounterCruncher implements Runnable {
 		this.threadPool = threadPool;
 		this.arity = arity;
 		this.inputBlockingQueue = new LinkedBlockingQueue<>();
-		this.cruncherMiddleware = new CruncherMiddleware(threadPool, arity, inputBlockingQueue);
+		this.outputBlockingQueue = new LinkedBlockingQueue<>();
+		this.cruncherMiddleware = new CruncherMiddleware(threadPool, arity, inputBlockingQueue, outputBlockingQueue);
 	}
 
 	@Override
@@ -28,5 +30,9 @@ public class CounterCruncher implements Runnable {
 
 	public BlockingQueue<Map<String, String>> getInputBlockingQueue() {
 		return inputBlockingQueue;
+	}
+
+	public BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> getOutputBlockingQueue() {
+		return outputBlockingQueue;
 	}
 }

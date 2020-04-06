@@ -51,7 +51,8 @@
 ## Kvalitet sistema
 
 - memorijska stabilnost i funkcionalni kvalitet
-- opcije za VM -Xms3g -Xmx3g
+- opcije za VM: -Xms3g -Xmx3g
+- opcije za VM: -Xms500m -Xmx500m
 - funkcionalni kvalitet je error handling i smislenost flowa kroz app
 
 ## GUI

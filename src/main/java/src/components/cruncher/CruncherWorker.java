@@ -1,15 +1,15 @@
 package src.components.cruncher;
 
-import com.google.common.collect.*;
+		import com.google.common.collect.*;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+		import java.io.IOException;
+		import java.util.Arrays;
+		import java.util.Collections;
+		import java.util.List;
+		import java.util.Map;
+		import java.util.concurrent.Callable;
+		import java.util.concurrent.ConcurrentHashMap;
+		import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CruncherWorker implements Callable<Map<String, ImmutableList<Multiset.Entry<Object>>>> {
 
@@ -27,7 +27,9 @@ public class CruncherWorker implements Callable<Map<String, ImmutableList<Multis
 	@Override
 	public Map<String, ImmutableList<Multiset.Entry<Object>>> call() throws Exception {
 		Map<String, ImmutableList<Multiset.Entry<Object>>> output = new ConcurrentHashMap<>();
-		ImmutableList<Multiset.Entry<Object>> result = getMostOccurringBOW(input, arity).subList(0, 10);
+		// TODO: How much to return?
+//		ImmutableList<Multiset.Entry<Object>> result = getMostOccurringBOW(input, arity).subList(0, 10);
+		ImmutableList<Multiset.Entry<Object>> result = getMostOccurringBOW(input, arity);
 		output.put(fileName + "-arity" + arity, result);
 		return output;
 	}
@@ -40,7 +42,7 @@ public class CruncherWorker implements Callable<Map<String, ImmutableList<Multis
 
 		System.out.println("NUMBER OF WORDS: " + wordsLength);
 
-		for (int i = 0; i < wordsLength; i += arity) {
+		for (int i = 0; i < wordsLength; i++) {
 			bagOfWords = Lists.newCopyOnWriteArrayList(getBagOfWords(words, wordsLength, i, i + arity));
 			Collections.sort(bagOfWords);
 			multiset.add(bagOfWords);

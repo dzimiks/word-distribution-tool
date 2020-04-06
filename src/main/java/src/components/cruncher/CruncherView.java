@@ -33,6 +33,7 @@ public class CruncherView extends VBox {
 		this.fileNamesList = new CopyOnWriteArrayList<>();
 		this.fileNamesList.add(new Label("Crunching:"));
 
+		// Config
 		this.setSpacing(Constants.DEFAULT_PADDING);
 		this.setPadding(new Insets(Constants.DEFAULT_PADDING, 0, 0, 0));
 
