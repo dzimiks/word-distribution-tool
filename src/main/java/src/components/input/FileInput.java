@@ -37,25 +37,24 @@ public class FileInput implements Runnable {
 
 	@Override
 	public void run() {
+		// TODO: Poison pill pattern
+		if (directories.contains("STOP")) {
+			directories.remove("STOP");
+		}
+
 		try {
 			Thread thread = new Thread(fileInputMiddleware);
 			thread.start();
-
 			traverseDirectories();
-
-			// TODO: When to shutdown?
-//			threadPool.shutdown();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void traverseDirectories() throws InterruptedException {
-		if (directories.contains("STOP")) {
-			directories.remove("STOP");
-		}
-
 		while (!directories.contains("STOP")) {
+			System.out.println("*=*= DIRS: " + directories);
+
 			for (String directory : directories) {
 				File rootDir = new File(directory);
 				AtomicInteger fileNumber = new AtomicInteger(0);
@@ -74,9 +73,12 @@ public class FileInput implements Runnable {
 							System.out.println("[FileInput] -> Found file: " + filePath + " | Last modified: " + lastModified);
 
 							this.seenFiles.put(absolutePath, currentTime);
-							this.filePathQueue.add(absolutePath);
-							fileNumber.incrementAndGet();
 
+							if (!this.filePathQueue.contains(absolutePath)) {
+								this.filePathQueue.add(absolutePath);
+							}
+
+							fileNumber.incrementAndGet();
 							Platform.runLater(() -> lblIdle.setText("Reading: " + filePath));
 						} else {
 							Long oldTime = seenFiles.get(absolutePath);

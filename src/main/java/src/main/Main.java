@@ -47,7 +47,7 @@ public class Main extends Application {
 
 	// Chart
 	private LineChart<Number, Number> lineChart;
-	private Series<Number, Number> series;
+	public static Series<Number, Number> series;
 	private List<Data<Number, Number>> data;
 	private NumberAxis xAxis;
 	private NumberAxis yAxis;
@@ -86,6 +86,15 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
+	}
+
+	@Override
+	public void stop() throws Exception {
+		super.stop();
+		// TODO
+		inputThreadPool.shutdown();
+		cruncherThreadPool.shutdown();
+		outputThreadPool.shutdown();
 	}
 
 	@Override
@@ -159,7 +168,12 @@ public class Main extends Application {
 
 			if (textInputDialog.showAndWait().isPresent() && !textInputDialog.getEditor().getText().equals("")) {
 				String cruncherName = "Cruncher " + (cruncherNameCounter++);
-				CruncherView cruncherView = new CruncherView(cruncherThreadPool, cruncherName, textInputDialog.getEditor().getText());
+				CruncherView cruncherView = new CruncherView(
+						cruncherThreadPool,
+						outputView.getCacheOutput().getOutputBlockingQueue(),
+						cruncherName,
+						textInputDialog.getEditor().getText()
+				);
 
 				for (ComboBox<String> comboBox : allCrunchersList) {
 					comboBox.getItems().add(cruncherName);

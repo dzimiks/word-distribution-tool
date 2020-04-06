@@ -14,11 +14,13 @@ public class CounterCruncher implements Runnable {
 	private CruncherMiddleware cruncherMiddleware;
 	private int arity;
 
-	public CounterCruncher(ExecutorService threadPool, int arity) {
+	public CounterCruncher(ExecutorService threadPool,
+						   BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue,
+						   int arity) {
 		this.threadPool = threadPool;
 		this.arity = arity;
 		this.inputBlockingQueue = new LinkedBlockingQueue<>();
-		this.outputBlockingQueue = new LinkedBlockingQueue<>();
+		this.outputBlockingQueue = outputBlockingQueue;
 		this.cruncherMiddleware = new CruncherMiddleware(threadPool, arity, inputBlockingQueue, outputBlockingQueue);
 	}
 

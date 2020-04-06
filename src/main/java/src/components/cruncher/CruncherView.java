@@ -1,5 +1,7 @@
 package src.components.cruncher;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multiset;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -7,6 +9,8 @@ import javafx.scene.layout.VBox;
 import src.utils.Constants;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -22,10 +26,13 @@ public class CruncherView extends VBox {
 
 	private ExecutorService threadPool;
 
-	public CruncherView(ExecutorService threadPool, String cruncherName, String arity) {
+	public CruncherView(ExecutorService threadPool,
+						BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue,
+						String cruncherName,
+						String arity) {
 		this.threadPool = threadPool;
 		this.cruncherName = cruncherName;
-		this.cruncher = new CounterCruncher(threadPool, Integer.parseInt(arity));
+		this.cruncher = new CounterCruncher(threadPool, outputBlockingQueue, Integer.parseInt(arity));
 
 		this.lblCruncherName = new Label("Name: " + cruncherName);
 		this.lblCruncherArity = new Label("Arity: " + arity);

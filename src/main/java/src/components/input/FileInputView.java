@@ -152,7 +152,8 @@ public class FileInputView extends VBox {
 			String value = selectedFile.getAbsolutePath();
 
 			if (!directoriesList.getItems().contains(value)) {
-				directoriesList.getItems().add(selectedFile.getAbsolutePath());
+				directoriesList.getItems().add(value);
+				fileInput.getDirectories().add(value);
 			} else {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.initStyle(StageStyle.UTILITY);
@@ -188,9 +189,6 @@ public class FileInputView extends VBox {
 					System.out.println("Started File Input");
 					btnStart.setText("Pause");
 
-					// TODO: File Input
-					fileInput.getDirectories().addAll(linkedDirs);
-
 					for (CruncherView view : app.getCruncherViews()) {
 						for (String name : linkedCrunchers) {
 							if (view.getCruncherName().equals(name)) {
@@ -214,28 +212,6 @@ public class FileInputView extends VBox {
 				btnStart.setText("Start");
 				fileInput.getDirectories().add("STOP");
 			}
-
-//			try {
-//				CountWords countWords = new CountWords();
-//				String filePath = "data/disk1/A/wiki-1.txt";
-//				int arity = 1;
-//
-//				ImmutableList<Multiset.Entry<Object>> result = countWords.getMostOccurringBOW(filePath, arity);
-//				AtomicInteger counter = new AtomicInteger();
-//				List<Data<Number, Number>> data = new ArrayList<>();
-//
-//				for (int i = 0; i < result.size(); i++) {
-//					Multiset.Entry<Object> bow = result.get(i);
-//					System.out.println(i + ": " + bow);
-//					Data<Number, Number> newData = new Data<>(counter.getAndIncrement(), bow.getCount());
-//					data.add(newData);
-//				}
-//
-//				app.getSeries().getData().clear();
-//				app.getSeries().getData().addAll(data);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
 		});
 
 //		btnRemoveDiskInput.setOnAction(event -> {

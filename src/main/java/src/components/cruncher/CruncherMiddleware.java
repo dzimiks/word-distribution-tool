@@ -37,16 +37,16 @@ public class CruncherMiddleware implements Runnable {
 					String[] parts = fileAbsolutePath.split(String.valueOf(File.separatorChar));
 					String filePath = parts[parts.length - 1];
 
-					// TODO: Send result to output
-//					Map<String, ImmutableList<Multiset.Entry<Object>>> outputMap = new ConcurrentHashMap<>();
-//					outputMap.put(fileAbsolutePath, null);
-//					outputBlockingQueue.put(outputMap);
-
 					System.out.println("Crunching " + filePath + "...");
 
 					CruncherWorker cruncherWorker = new CruncherWorker(filePath, entry.getValue(), arity);
 					Future<Map<String, ImmutableList<Multiset.Entry<Object>>>> result = threadPool.submit(cruncherWorker);
 					Map<String, ImmutableList<Multiset.Entry<Object>>> output = result.get();
+
+					// TODO: Send result to output
+//					Map<String, ImmutableList<Multiset.Entry<Object>>> outputMap = new ConcurrentHashMap<>();
+//					outputMap.put(fileAbsolutePath, null);
+					outputBlockingQueue.put(output);
 
 					for (Map.Entry<String, ImmutableList<Multiset.Entry<Object>>> value : output.entrySet()) {
 						String key = value.getKey();
