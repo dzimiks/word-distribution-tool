@@ -175,8 +175,7 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 ### 4.1 GUI
 
-> Cruncher - Brisanje CounterCruncher komponenti. Pri brisanju se komponenta automatski razvezuje od bilo kojih input komponenti za koje je bila vezana.  
-> Skloniti fajl kad zavrsi crunching
+> Cruncher - Skloniti fajl kad zavrsi crunching
 
 > Output - Spisak rezultata, dat kao lista imena datoteka. Aktivni poslovi (koji se još uvek obrađuju unutar neke CounterCruncher komponente) imaju znak * pre imena.  
 > Dohvatanje rezultata.  

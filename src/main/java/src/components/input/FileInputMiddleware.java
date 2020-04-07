@@ -65,7 +65,7 @@ public class FileInputMiddleware implements Runnable {
 						Label inputFile = new Label(filePath);
 						cruncher.getFileNamesList().add(inputFile);
 
-						Platform.runLater(() -> cruncher.getChildren().add(inputFile));
+						Platform.runLater(() -> cruncher.getVbInputFiles().getChildren().add(inputFile));
 					}
 				});
 			} catch (ExecutionException | InterruptedException e) {

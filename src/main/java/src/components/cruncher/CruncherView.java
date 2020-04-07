@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 
 public class CruncherView extends VBox {
 
@@ -24,6 +23,7 @@ public class CruncherView extends VBox {
 	private Button btnRemoveCruncher;
 	private List<Label> fileNamesList;
 	private CounterCruncher cruncher;
+	private VBox vbInputFiles;
 
 	private ExecutorService threadPool;
 	private Main app;
@@ -36,7 +36,7 @@ public class CruncherView extends VBox {
 		this.threadPool = threadPool;
 		this.app = app;
 		this.cruncherName = cruncherName;
-		this.cruncher = new CounterCruncher(threadPool, outputBlockingQueue, Integer.parseInt(arity));
+		this.cruncher = new CounterCruncher(threadPool, this, outputBlockingQueue, Integer.parseInt(arity));
 
 		this.lblCruncherName = new Label("Name: " + cruncherName);
 		this.lblCruncherArity = new Label("Arity: " + arity);
@@ -62,11 +62,15 @@ public class CruncherView extends VBox {
 		this.fileNamesList = new CopyOnWriteArrayList<>();
 		this.fileNamesList.add(new Label("Crunching:"));
 
+		this.vbInputFiles = new VBox();
+		this.vbInputFiles.setSpacing(Constants.DEFAULT_PADDING);
+		this.fileNamesList.forEach(item -> vbInputFiles.getChildren().add(item));
+
 		// Config
 		this.setSpacing(Constants.DEFAULT_PADDING);
 		this.setPadding(new Insets(Constants.DEFAULT_PADDING, 0, 0, 0));
 
-		this.getChildren().addAll(lblCruncherName, lblCruncherArity, btnRemoveCruncher);
+		this.getChildren().addAll(lblCruncherName, lblCruncherArity, btnRemoveCruncher, vbInputFiles);
 
 		Thread thread = new Thread(cruncher);
 		thread.start();
@@ -94,6 +98,10 @@ public class CruncherView extends VBox {
 
 	public CounterCruncher getCruncher() {
 		return cruncher;
+	}
+
+	public VBox getVbInputFiles() {
+		return vbInputFiles;
 	}
 
 	@Override
