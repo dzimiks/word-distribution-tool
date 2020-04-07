@@ -35,6 +35,9 @@ public class FileInputMiddleware implements Runnable {
 		while (true) {
 			try {
 				String fileName = filePathQueue.take();
+
+				System.out.println("FileInputMiddleware take: " + fileName);
+
 				File file = new File(fileName);
 				FileInputWorker fileInputWorker = new FileInputWorker(file);
 				Future<Map<String, String>> result = threadPool.submit(fileInputWorker);
@@ -47,8 +50,9 @@ public class FileInputMiddleware implements Runnable {
 				});
 
 				cruncherList.forEach(cruncher -> {
+					// TODO: Add read files to cruncher
 					cruncher.getCruncher().getInputBlockingQueue().add(map);
-					System.out.println("[Cruncher]: " + cruncher + " size: " + cruncher.getCruncher().getInputBlockingQueue().size());
+					System.out.println("[Cruncher]: " + cruncher + " got map: " + map.keySet());
 
 					for (Map.Entry<String, String> entry : map.entrySet()) {
 						String absolutePath = entry.getKey();

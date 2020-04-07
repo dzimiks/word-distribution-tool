@@ -52,9 +52,12 @@ public class OutputView extends VBox {
 
 			for (int i = 0; i < result.size(); i++) {
 				Multiset.Entry<Object> bow = result.get(i);
-//				System.out.println(i + ": " + bow);
 				XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
 				data.add(newData);
+
+				if (i < 10) {
+					System.out.println(i + ": " + bow);
+				}
 			}
 
 			Platform.runLater(() -> {

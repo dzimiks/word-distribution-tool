@@ -126,9 +126,118 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 - Čitanje jedne datoteke treba da se obavlja kao zaseban posao unutar Thread Pool-a koji je namenjen za sve FileInput komponente
 - ForkJoinPool prosledjujemo svim FileInput komponentama i ogranicimo broj threadova
 - svaka FileInput komponenta koristi max broj threadova u tom pool-u
-- 
 
+# PITANJA ZA BANETA I STA JOS FALI
 
-## PITANJA ZA BANETA
+## 2 Opis sistema
 
-- kako da konkurentno citamo fajlove sa razlicitih diskova?
+### 2.1 Input komponente
+
+> kako da konkurentno citamo fajlove sa razlicitih diskova?
+
+> *Ako imamo datoteke koje se nalaze na različitim diskovima, onda ih treba čitati konkurentno, ali u jednom trenutku se vrši samo jedno čitanje sa jednog diska.
+> Dakle ni u jednom trenutku ne sme unutar ovog Thread Pool-a da bude aktivno više niti od broja diskova.
+
+> Ako se neki direktorijum izbaci iz spiska za skeniranje, sve datoteke unutar tog direktorijuma se brišu iz “last modified” spiska. Ako se isti direktorijum ponovo doda, sve datoteke unutar tog direktorijuma će biti ponovo pročitane.
+
+> Button Remove Cruncher NoSuchElementException resiti
+
+> Remove files from seen files map
+
+### 2.2 Cruncher komponente
+
+> Svaki posao jedne niti unutar Thread Pool-a treba da bude definisan tako da se obavlja nad približno sličnom dužinom teksta (L), nezavisno od toga koliko je velika datoteka koja je došla na ulazu.  
+> Pri podeli jedne datoteke na delove je dozvoljeno da postoji jedan deo koji je značajno manji od L.  
+> Ostali delovi treba da budu približno jednaki L, gde pod “približno” dozvoljavamo okolinu L od dužine jedne reči.  
+> Parametar L se zadaje kroz konfiguracionu datoteku.  
+
+> za arnost gledamo sve bow-ove jedan do drugog? (i++ ili i += arity)
+
+> Čim prebrojavanje za neki input objekat počne, treba svim output komponentama prijaviti da je taj posao započet, i omogućiti im da ga prikažu kao aktivnog.  
+> Na ime posla (naziv datoteke) se dodaje sufix “-arityX”, gde je X arnost za cruncher komponentu koja obavlja posao.  
+> Čim se posao završi, output komponente treba da imaju broj pojavljivanja svih vreća ove arnosti u ovom tekstu.
+
+### 2.3 Output komponente
+
+> Rezultati treba da se čuvaju u mapi oblika [naziv rezultata -> brojevi pojavljivanja svih vreća te arnosti u toj datoteci].  
+> Jel svejedno kako prosledjujemo broj pojavljivanja?  
+
+> Ova komponenta treba da obezbedi agregaciju već izračunatih rezultata, konkretno unijom i sumiranjem.  
+> Output komponenti treba da bude moguće zadati posao koji će ovo da obavlja i taj posao treba obavljati unutar Thread Pool-a koji je namenjen za sve output komponente.  
+> Sama agregacija se radi tako što se formira unija svih navedenih rezultata.  
+> Ako u različitim rezultatima postoje brojevi pojavljivanja za jednu te istu reč ili vreću, onda treba sumirati te rezultate u uniji.  
+> Posao treba da počne od praznog skupa i da čeka da rezultati postanu dostupni u proizvoljnom redosledu.  
+> Nije potrebno dodavati rezultate u redosledu u kojem su postali dostupni.
+
+> Za sve rezultate (pojedinačne i sumirane) treba obezbediti operacije poll() i take().  
+> Operacija poll() je neblokirajuća operacija čitanja koja vraća null ako rezultat još uvek nije spreman.  
+> Operacija take() treba da blokira nit koja ju je pozvala sve dok rezultati nisu spremni za čitanje.  
+> Ako su rezultati spremni, operacija take() nije blokirajuća, već samo vraća rezultate.
+
+## 3 Kvalitet sistema
+
+> U slučaju da tokom rada ponestane RAM-a pri čitanju ili obradi, treba prijaviti grešku i odmah prekinuti rad čitavog programa, bez urednog gašenja svih poslova i niti.
+
+> Ako se traže rezultati izračunavanja, a oni nisu spremni za prikaz, to treba prijaviti.
+
+> Izlaz iz aplikacije treba da bude uredan, što podrazumeva zabranu započinjanja novih poslova, čekanje da se svi započeti poslovi završe, i gašenje svih niti bez nasilnog prekidanja.  
+> Jel to stop() metoda iz javafx-a?
+
+## 4 GUI i podešavanje sistema
+
+### 4.1 GUI
+
+> Input - Uklanjanje FileInput komponente.
+
+> Cruncher - Brisanje CounterCruncher komponenti. Pri brisanju se komponenta automatski razvezuje od bilo kojih input komponenti za koje je bila vezana.  
+> Skloniti fajl kad zavrsi crunching
+
+> Output - Spisak rezultata, dat kao lista imena datoteka. Aktivni poslovi (koji se još uvek obrađuju unutar neke CounterCruncher komponente) imaju znak * pre imena.  
+> Dohvatanje rezultata.  
+> Ako rezultat nije spreman, prijaviti grešku.  
+> Rezultat treba sortirati opadajuće po broju pojavljivanja reči u posebnoj niti, čiji progres se prikazuje pomoću progress bar komponente.  
+> Progres se osvežava na svakih K poređenja unutar procesa sortiranja, gde se K čita iz konfiguracione datoteke.  
+> Pretpostaviti da će čitav proces imati N*logN poređenja ako se koristi Collections.sort().  
+> Nakon što je sortiranje završeno, rezultati se prikazuju kao linijski grafik učestalosti za prvih 100 reči (bez prikazivanja samih reči).  
+> Započinjanje agregacionog posla.  
+> Pre početka posla pitati korisnika za jedinstveni naziv sume.  
+> Ako uneti naziv nije jedinstven, prijaviti grešku.  
+> Tokom sumiranja prikazati progres pomoću progress bar komponente koja se osvežava nakon svakog spajanja rezultata.  
+> Ako je startovano više suma, prikazati progres za svaku od njih.
+
+## Scenariji
+
+### Scenario 1
+
+> File input button da se stavi na disable
+> add directory button da postavi trenutni disk kao default starting point
+> remove disk input ne radi
+> remove cruncher ne radi
+> output - buttons podesi normalno ponasanje
+> sum fali i sort
+
+### Scenario 3
+
+> suma dok se crunchuju
+
+### Scenario 4
+
+> update output novim izmenjenim rezultatima za fajl
+
+> treba obrisati last modified kad se skloni directory i novi cruncher ce ponovo poceti da cita (pre toga nije nista radio)
+
+### Scenario 5
+
+> -Xms500m -Xmx500m treba da obori app
+
+### Random
+
+> jel ok da pravim sva 3 thread pool-a u main-u?
+
+> idle label ima mali delay kada zavrsi sa citanjem, pa se tek onda promeni
+
+> bug se desi - doda 2x isti fajl kada se pauzira -> doda fajl -> startuje dugme - NE SME DA PRAVI NOVI THREAD STALNO
+
+> gasenje aplikacije da se sredi i dok radi input
+
+> bug kad se ne odabere cruncher, a odabere directory i pokrene start - ne sme da krene da cita

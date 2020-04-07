@@ -52,9 +52,9 @@ public class FileInput implements Runnable {
 	}
 
 	public void traverseDirectories() throws InterruptedException {
-		while (!directories.contains("STOP")) {
-			System.out.println("*=*= DIRS: " + directories);
+		System.out.println("ALL DIRS: " + directories);
 
+		while (!directories.contains("STOP")) {
 			for (String directory : directories) {
 				File rootDir = new File(directory);
 				AtomicInteger fileNumber = new AtomicInteger(0);
@@ -88,7 +88,7 @@ public class FileInput implements Runnable {
 								System.out.println("oldTime: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(oldTime)));
 								System.out.println("currentTime: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currentTime)));
 
-								seenFiles.put(absolutePath, currentTime);
+								this.seenFiles.put(absolutePath, currentTime);
 								System.out.println(">>> File " + fileName + " is replaced!");
 								Platform.runLater(() -> lblIdle.setText("Reading: " + filePath));
 							} else {
@@ -124,5 +124,9 @@ public class FileInput implements Runnable {
 
 	public void setLblIdle(Label lblIdle) {
 		this.lblIdle = lblIdle;
+	}
+
+	public ConcurrentHashMap<String, Long> getSeenFiles() {
+		return seenFiles;
 	}
 }

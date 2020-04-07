@@ -11,6 +11,8 @@ import src.main.Main;
 import src.utils.Constants;
 
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
 public class FileInputView extends VBox {
@@ -83,6 +85,10 @@ public class FileInputView extends VBox {
 		this.fileInput.setLblIdle(lblStatus);
 		this.fileInput.getFileInputMiddleware().setLblIdle(lblStatus);
 
+		// TODO: When to start a thread?
+//		Thread thread = new Thread(fileInput);
+//		thread.start();
+
 		// TODO: Actions
 		crunchersList.setOnMouseClicked(event -> {
 			ObservableList<String> selectedCrunchers = crunchersList.getSelectionModel().getSelectedItems();
@@ -139,6 +145,7 @@ public class FileInputView extends VBox {
 				for (String cruncher : selectedCrunchers) {
 					crunchersList.getItems().remove(cruncher);
 					System.out.println("Cruncher: " + cruncher + " is removed!");
+					btnLinkCruncher.setDisable(false);
 					btnUnlinkCruncher.setDisable(true);
 				}
 			}
@@ -165,19 +172,36 @@ public class FileInputView extends VBox {
 		});
 
 		btnRemoveDirectory.setOnAction(event -> {
-			ObservableList<String> selectedDirectories = directoriesList.getSelectionModel().getSelectedItems();
+			ObservableList<String> selectedDirectories = directoriesList.getItems();
 			System.out.println("SELECTED DIRECTORIES: " + selectedDirectories);
+			List<String> whatToRemove = new CopyOnWriteArrayList<>();
 
 			if (!selectedDirectories.isEmpty()) {
 				for (String directory : selectedDirectories) {
-					directoriesList.getItems().remove(directory);
-					System.out.println("Directory: " + directory + " is removed!");
+					whatToRemove.add(directory);
+
+					System.out.println("*+*+*++* SEEN FILES BEFORE: " + fileInput.getSeenFiles());
+					fileInput.getSeenFiles().remove(directory);
+					System.out.println("*+*+*++* SEEN FILES AFTER: " + fileInput.getSeenFiles());
+
 					btnRemoveDirectory.setDisable(true);
+				}
+
+				// TODO: Remove dirs
+				if (!whatToRemove.isEmpty()) {
+					for (String directory : whatToRemove) {
+						directoriesList.getItems().remove(directory);
+						System.out.println("Directory: " + directory + " is removed!");
+					}
+
+					whatToRemove.clear();
 				}
 			}
 		});
 
 		btnStart.setOnAction(event -> {
+			Thread thread = new Thread(fileInput);
+
 			if (btnStart.getText().equals("Start")) {
 				ObservableList<String> linkedDirs = directoriesList.getItems();
 				System.out.println("linkedDirs: " + linkedDirs);
@@ -192,12 +216,13 @@ public class FileInputView extends VBox {
 					for (CruncherView view : app.getCruncherViews()) {
 						for (String name : linkedCrunchers) {
 							if (view.getCruncherName().equals(name)) {
-								fileInput.getCruncherList().add(view);
+								if (!fileInput.getCruncherList().contains(view)) {
+									fileInput.getCruncherList().add(view);
+								}
 							}
 						}
 					}
 
-					Thread thread = new Thread(fileInput);
 					thread.start();
 				} else {
 					Alert alert = new Alert(Alert.AlertType.ERROR);
