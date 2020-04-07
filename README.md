@@ -145,16 +145,11 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > Ostali delovi treba da budu približno jednaki L, gde pod “približno” dozvoljavamo okolinu L od dužine jedne reči.  
 > Parametar L se zadaje kroz konfiguracionu datoteku.  
 
-> za arnost gledamo sve bow-ove jedan do drugog? (i++ ili i += arity)
-
 > Čim prebrojavanje za neki input objekat počne, treba svim output komponentama prijaviti da je taj posao započet, i omogućiti im da ga prikažu kao aktivnog.  
 > Na ime posla (naziv datoteke) se dodaje sufix “-arityX”, gde je X arnost za cruncher komponentu koja obavlja posao.  
 > Čim se posao završi, output komponente treba da imaju broj pojavljivanja svih vreća ove arnosti u ovom tekstu.
 
 ### 2.3 Output komponente
-
-> Rezultati treba da se čuvaju u mapi oblika [naziv rezultata -> brojevi pojavljivanja svih vreća te arnosti u toj datoteci].  
-> Jel svejedno kako prosledjujemo broj pojavljivanja?  
 
 > Ova komponenta treba da obezbedi agregaciju već izračunatih rezultata, konkretno unijom i sumiranjem.  
 > Output komponenti treba da bude moguće zadati posao koji će ovo da obavlja i taj posao treba obavljati unutar Thread Pool-a koji je namenjen za sve output komponente.  
@@ -175,13 +170,10 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > Ako se traže rezultati izračunavanja, a oni nisu spremni za prikaz, to treba prijaviti.
 
 > Izlaz iz aplikacije treba da bude uredan, što podrazumeva zabranu započinjanja novih poslova, čekanje da se svi započeti poslovi završe, i gašenje svih niti bez nasilnog prekidanja.  
-> Jel to stop() metoda iz javafx-a?
 
 ## 4 GUI i podešavanje sistema
 
 ### 4.1 GUI
-
-> Input - Uklanjanje FileInput komponente.
 
 > Cruncher - Brisanje CounterCruncher komponenti. Pri brisanju se komponenta automatski razvezuje od bilo kojih input komponenti za koje je bila vezana.  
 > Skloniti fajl kad zavrsi crunching

@@ -2,6 +2,8 @@ package src.components.input;
 
 import com.google.common.io.Files;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -86,9 +88,9 @@ public class FileInputView extends VBox {
 		this.fileInput.setLblIdle(lblStatus);
 		this.fileInput.getFileInputMiddleware().setLblIdle(lblStatus);
 
-		// TODO: When to start a thread?
-//		Thread thread = new Thread(fileInput);
-//		thread.start();
+		// Config
+		this.setSpacing(Constants.DEFAULT_PADDING);
+		this.setPadding(new Insets(Constants.DEFAULT_PADDING, 0, 0, 0));
 
 		// TODO: Actions
 		crunchersList.setOnMouseClicked(event -> {
@@ -258,29 +260,28 @@ public class FileInputView extends VBox {
 			}
 		});
 
-//		btnRemoveDiskInput.setOnAction(event -> {
-//			List<FileInput> fileInputs = app.getFileInputs();
-//			System.out.println("\n>>> " + fileInputs);
-//
-//			fileInputs.forEach(input -> {
-//				input.setBlocked(!input.isBlocked());
-//			});
-//		});
+		btnRemoveDiskInput.setOnAction(event -> {
+			app.getFileInputs().remove(this);
+			app.getvBoxFileInput().getChildren().remove(this);
+			System.out.println("Disk input: " + this + " is removed!");
+		});
 
 		app.getAllCrunchersList().add(cbCruncherNames);
 
 		// Crunchers
-		app.getvBoxFileInput().getChildren().add(lblFileInput);
-		app.getvBoxFileInput().getChildren().add(lblCrunchersLabel);
-		app.getvBoxFileInput().getChildren().add(crunchersList);
-		app.getvBoxFileInput().getChildren().add(cbCruncherNames);
-		app.getvBoxFileInput().getChildren().add(hbFileInputRow);
+		this.getChildren().add(lblFileInput);
+		this.getChildren().add(lblCrunchersLabel);
+		this.getChildren().add(crunchersList);
+		this.getChildren().add(cbCruncherNames);
+		this.getChildren().add(hbFileInputRow);
 
 		// Dirs
-		app.getvBoxFileInput().getChildren().add(directoriesLabel);
-		app.getvBoxFileInput().getChildren().add(directoriesList);
-		app.getvBoxFileInput().getChildren().add(hbDirsFirstRow);
-		app.getvBoxFileInput().getChildren().add(hbDirsSecondRow);
-		app.getvBoxFileInput().getChildren().add(lblStatus);
+		this.getChildren().add(directoriesLabel);
+		this.getChildren().add(directoriesList);
+		this.getChildren().add(hbDirsFirstRow);
+		this.getChildren().add(hbDirsSecondRow);
+		this.getChildren().add(lblStatus);
+
+		app.getvBoxFileInput().getChildren().add(this);
 	}
 }

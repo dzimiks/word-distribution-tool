@@ -37,6 +37,7 @@ public class Main extends Application {
 
 	// Setup
 	private InputStream inputStream;
+	private BorderPane mainView;
 
 	// Utils
 	private HBox hBoxInputAndCruncher;
@@ -52,17 +53,6 @@ public class Main extends Application {
 	private NumberAxis xAxis;
 	private NumberAxis yAxis;
 
-	private List<ComboBox<String>> allCrunchersList;
-
-	// Left view
-	private Label lblFileInput;
-	private Label lblCrunchersLabel;
-	private ListView<String> crunchersList;
-	private ComboBox<String> cbCruncherNames;
-	private HBox hbFileInputRow;
-	private Button btnLinkCruncher;
-	private Button btnUnlinkCruncher;
-
 	// FileInput
 	private Label fileInputLabel;
 	private ComboBox<String> comboBoxFileInput;
@@ -74,11 +64,11 @@ public class Main extends Application {
 	private Button addCruncherButton;
 	private int cruncherNameCounter;
 	private List<CruncherView> cruncherViews;
-
-	private BorderPane mainView;
+	private List<ComboBox<String>> allCrunchersList;
 
 	// Output
 	private OutputView outputView;
+	private List<OutputView> outputViews;
 
 	private ExecutorService inputThreadPool;
 	private ExecutorService cruncherThreadPool;
@@ -127,6 +117,7 @@ public class Main extends Application {
 
 		this.fileInputs = new CopyOnWriteArrayList<>();
 		this.cruncherViews = new CopyOnWriteArrayList<>();
+		this.outputViews = new CopyOnWriteArrayList<>();
 
 		this.hBoxInputAndCruncher = new HBox();
 		this.hBoxInputAndCruncher.setSpacing(Constants.DEFAULT_PADDING);
@@ -215,6 +206,7 @@ public class Main extends Application {
 		this.mainView.setCenter(lineChart);
 
 		this.outputView = new OutputView(outputThreadPool);
+		this.outputViews.add(outputView);
 		this.mainView.setRight(outputView);
 	}
 
@@ -323,62 +315,6 @@ public class Main extends Application {
 		this.yAxis = yAxis;
 	}
 
-	public Label getLblFileInput() {
-		return lblFileInput;
-	}
-
-	public void setLblFileInput(Label lblFileInput) {
-		this.lblFileInput = lblFileInput;
-	}
-
-	public Label getLblCrunchersLabel() {
-		return lblCrunchersLabel;
-	}
-
-	public void setLblCrunchersLabel(Label lblCrunchersLabel) {
-		this.lblCrunchersLabel = lblCrunchersLabel;
-	}
-
-	public ListView<String> getCrunchersList() {
-		return crunchersList;
-	}
-
-	public void setCrunchersList(ListView<String> crunchersList) {
-		this.crunchersList = crunchersList;
-	}
-
-	public ComboBox<String> getCbCruncherNames() {
-		return cbCruncherNames;
-	}
-
-	public void setCbCruncherNames(ComboBox<String> cbCruncherNames) {
-		this.cbCruncherNames = cbCruncherNames;
-	}
-
-	public HBox getHbFileInputRow() {
-		return hbFileInputRow;
-	}
-
-	public void setHbFileInputRow(HBox hbFileInputRow) {
-		this.hbFileInputRow = hbFileInputRow;
-	}
-
-	public Button getBtnLinkCruncher() {
-		return btnLinkCruncher;
-	}
-
-	public void setBtnLinkCruncher(Button btnLinkCruncher) {
-		this.btnLinkCruncher = btnLinkCruncher;
-	}
-
-	public Button getBtnUnlinkCruncher() {
-		return btnUnlinkCruncher;
-	}
-
-	public void setBtnUnlinkCruncher(Button btnUnlinkCruncher) {
-		this.btnUnlinkCruncher = btnUnlinkCruncher;
-	}
-
 	public Label getFileInputLabel() {
 		return fileInputLabel;
 	}
@@ -445,5 +381,13 @@ public class Main extends Application {
 
 	public List<CruncherView> getCruncherViews() {
 		return cruncherViews;
+	}
+
+	public OutputView getOutputView() {
+		return outputView;
+	}
+
+	public List<OutputView> getOutputViews() {
+		return outputViews;
 	}
 }
