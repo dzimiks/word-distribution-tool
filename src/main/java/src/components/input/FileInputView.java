@@ -140,14 +140,23 @@ public class FileInputView extends VBox {
 
 		btnUnlinkCruncher.setOnAction(event -> {
 			ObservableList<String> selectedCrunchers = crunchersList.getSelectionModel().getSelectedItems();
+			List<String> whatToRemove = new CopyOnWriteArrayList<>();
 			System.out.println("SELECTED CRUNCHERS: " + selectedCrunchers);
 
 			if (!selectedCrunchers.isEmpty()) {
 				for (String cruncher : selectedCrunchers) {
-					crunchersList.getItems().remove(cruncher);
-					System.out.println("Cruncher: " + cruncher + " is removed!");
+					whatToRemove.add(cruncher);
 					btnLinkCruncher.setDisable(false);
 					btnUnlinkCruncher.setDisable(true);
+				}
+
+				if (!whatToRemove.isEmpty()) {
+					for (String cruncher : whatToRemove) {
+						crunchersList.getItems().remove(cruncher);
+						System.out.println("Cruncher: " + cruncher + " is removed!");
+					}
+
+					whatToRemove.clear();
 				}
 			}
 		});
@@ -173,7 +182,7 @@ public class FileInputView extends VBox {
 		});
 
 		btnRemoveDirectory.setOnAction(event -> {
-			ObservableList<String> selectedDirectories = directoriesList.getItems();
+			ObservableList<String> selectedDirectories = directoriesList.getSelectionModel().getSelectedItems();
 			List<String> whatToRemove = new CopyOnWriteArrayList<>();
 			System.out.println("SELECTED DIRECTORIES: " + selectedDirectories);
 
@@ -195,8 +204,11 @@ public class FileInputView extends VBox {
 
 							if (fileName.endsWith(".txt")) {
 								String absolutePath = file.getAbsolutePath();
-								fileInput.getSeenFiles().remove(absolutePath);
-								System.out.println("File: " + absolutePath + " is removed!");
+
+								if (!fileInput.getSeenFiles().containsKey(absolutePath)) {
+									fileInput.getSeenFiles().remove(absolutePath);
+									System.out.println("File: " + absolutePath + " is removed!");
+								}
 							}
 						}
 					}

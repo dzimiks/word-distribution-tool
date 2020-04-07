@@ -138,10 +138,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > *Ako imamo datoteke koje se nalaze na različitim diskovima, onda ih treba čitati konkurentno, ali u jednom trenutku se vrši samo jedno čitanje sa jednog diska.
 > Dakle ni u jednom trenutku ne sme unutar ovog Thread Pool-a da bude aktivno više niti od broja diskova.
 
-> Ako se neki direktorijum izbaci iz spiska za skeniranje, sve datoteke unutar tog direktorijuma se brišu iz “last modified” spiska. Ako se isti direktorijum ponovo doda, sve datoteke unutar tog direktorijuma će biti ponovo pročitane.
-
-> Button Remove Cruncher NoSuchElementException resiti
-
 ### 2.2 Cruncher komponente
 
 > Svaki posao jedne niti unutar Thread Pool-a treba da bude definisan tako da se obavlja nad približno sličnom dužinom teksta (L), nezavisno od toga koliko je velika datoteka koja je došla na ulazu.  
