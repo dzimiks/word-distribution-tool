@@ -1,5 +1,6 @@
 package src.components.input;
 
+import com.google.common.io.Files;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -173,25 +174,31 @@ public class FileInputView extends VBox {
 
 		btnRemoveDirectory.setOnAction(event -> {
 			ObservableList<String> selectedDirectories = directoriesList.getItems();
-			System.out.println("SELECTED DIRECTORIES: " + selectedDirectories);
 			List<String> whatToRemove = new CopyOnWriteArrayList<>();
+			System.out.println("SELECTED DIRECTORIES: " + selectedDirectories);
 
 			if (!selectedDirectories.isEmpty()) {
 				for (String directory : selectedDirectories) {
 					whatToRemove.add(directory);
-
-					System.out.println("*+*+*++* SEEN FILES BEFORE: " + fileInput.getSeenFiles());
-					fileInput.getSeenFiles().remove(directory);
-					System.out.println("*+*+*++* SEEN FILES AFTER: " + fileInput.getSeenFiles());
-
 					btnRemoveDirectory.setDisable(true);
 				}
 
 				// TODO: Remove dirs
 				if (!whatToRemove.isEmpty()) {
 					for (String directory : whatToRemove) {
+						File rootDir = new File(directory);
 						directoriesList.getItems().remove(directory);
 						System.out.println("Directory: " + directory + " is removed!");
+
+						for (File file : Files.fileTraverser().depthFirstPreOrder(rootDir)) {
+							String fileName = file.getName();
+
+							if (fileName.endsWith(".txt")) {
+								String absolutePath = file.getAbsolutePath();
+								fileInput.getSeenFiles().remove(absolutePath);
+								System.out.println("File: " + absolutePath + " is removed!");
+							}
+						}
 					}
 
 					whatToRemove.clear();

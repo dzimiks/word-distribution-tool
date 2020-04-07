@@ -89,15 +89,6 @@ public class Main extends Application {
 	}
 
 	@Override
-	public void stop() throws Exception {
-		super.stop();
-		// TODO
-		inputThreadPool.shutdown();
-		cruncherThreadPool.shutdown();
-		outputThreadPool.shutdown();
-	}
-
-	@Override
 	public void start(Stage stage) throws Exception {
 		this.inputThreadPool = Executors.newCachedThreadPool();
 		this.cruncherThreadPool = Executors.newCachedThreadPool();
@@ -121,6 +112,14 @@ public class Main extends Application {
 		stage.setTitle(Constants.PROJECT_NAME);
 		stage.setScene(scene);
 		stage.show();
+
+		stage.setOnCloseRequest(event -> {
+			System.out.println("Closing app...");
+
+			inputThreadPool.shutdown();
+			cruncherThreadPool.shutdown();
+			outputThreadPool.shutdown();
+		});
 	}
 
 	private void initView() {

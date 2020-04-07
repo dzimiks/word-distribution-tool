@@ -142,8 +142,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > Button Remove Cruncher NoSuchElementException resiti
 
-> Remove files from seen files map
-
 ### 2.2 Cruncher komponente
 
 > Svaki posao jedne niti unutar Thread Pool-a treba da bude definisan tako da se obavlja nad približno sličnom dužinom teksta (L), nezavisno od toga koliko je velika datoteka koja je došla na ulazu.  
