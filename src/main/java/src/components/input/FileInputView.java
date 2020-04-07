@@ -3,7 +3,6 @@ package src.components.input;
 import com.google.common.io.Files;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -24,6 +23,11 @@ public class FileInputView extends VBox {
 	private ExecutorService threadPool;
 	private FileInput fileInput;
 
+	private ListView<String> crunchersList;
+	private ComboBox<String> cbCruncherNames;
+	private Button btnLinkCruncher;
+	private Button btnUnlinkCruncher;
+
 	public FileInputView(ExecutorService threadPool, Main app) {
 		this.threadPool = threadPool;
 		this.app = app;
@@ -39,17 +43,17 @@ public class FileInputView extends VBox {
 		Label lblFileInput = new Label("File Input: " + app.getComboBoxFileInput().getValue());
 		Label lblCrunchersLabel = new Label("Crunchers:");
 
-		ListView<String> crunchersList = new ListView<>();
-		crunchersList.setMaxSize(200, 150);
-		crunchersList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		this.crunchersList = new ListView<>();
+		this.crunchersList.setMaxSize(200, 150);
+		this.crunchersList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-		ComboBox<String> cbCruncherNames = new ComboBox<>();
+		this.cbCruncherNames = new ComboBox<>();
 
-		Button btnLinkCruncher = new Button("Link Cruncher");
-		Button btnUnlinkCruncher = new Button("Unlink Cruncher");
+		this.btnLinkCruncher = new Button("Link Cruncher");
+		this.btnUnlinkCruncher = new Button("Unlink Cruncher");
 
-		btnLinkCruncher.setDisable(true);
-		btnUnlinkCruncher.setDisable(true);
+		this.btnLinkCruncher.setDisable(true);
+		this.btnUnlinkCruncher.setDisable(true);
 
 		HBox hbFileInputRow = new HBox();
 		hbFileInputRow.setSpacing(Constants.DEFAULT_PADDING);
@@ -263,7 +267,7 @@ public class FileInputView extends VBox {
 		btnRemoveDiskInput.setOnAction(event -> {
 			app.getFileInputs().remove(this);
 			app.getvBoxFileInput().getChildren().remove(this);
-			System.out.println("Disk input: " + this + " is removed!");
+			System.out.println("Disk input " + this + " is removed!");
 		});
 
 		app.getAllCrunchersList().add(cbCruncherNames);
@@ -283,5 +287,25 @@ public class FileInputView extends VBox {
 		this.getChildren().add(lblStatus);
 
 		app.getvBoxFileInput().getChildren().add(this);
+	}
+
+	public FileInput getFileInput() {
+		return fileInput;
+	}
+
+	public ListView<String> getCrunchersList() {
+		return crunchersList;
+	}
+
+	public ComboBox<String> getCbCruncherNames() {
+		return cbCruncherNames;
+	}
+
+	public Button getBtnLinkCruncher() {
+		return btnLinkCruncher;
+	}
+
+	public Button getBtnUnlinkCruncher() {
+		return btnUnlinkCruncher;
 	}
 }

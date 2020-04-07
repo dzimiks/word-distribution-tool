@@ -160,6 +160,7 @@ public class Main extends Application {
 				String cruncherName = "Cruncher " + (cruncherNameCounter++);
 				CruncherView cruncherView = new CruncherView(
 						cruncherThreadPool,
+						this,
 						outputView.getCacheOutput().getOutputBlockingQueue(),
 						cruncherName,
 						textInputDialog.getEditor().getText()

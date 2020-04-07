@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import src.main.Main;
 import src.utils.Constants;
 
 import java.util.List;
@@ -25,18 +26,39 @@ public class CruncherView extends VBox {
 	private CounterCruncher cruncher;
 
 	private ExecutorService threadPool;
+	private Main app;
 
 	public CruncherView(ExecutorService threadPool,
+						Main app,
 						BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue,
 						String cruncherName,
 						String arity) {
 		this.threadPool = threadPool;
+		this.app = app;
 		this.cruncherName = cruncherName;
 		this.cruncher = new CounterCruncher(threadPool, outputBlockingQueue, Integer.parseInt(arity));
 
 		this.lblCruncherName = new Label("Name: " + cruncherName);
 		this.lblCruncherArity = new Label("Arity: " + arity);
 		this.btnRemoveCruncher = new Button("Remove Cruncher");
+
+		this.btnRemoveCruncher.setOnAction(event -> {
+			app.getCruncherViews().remove(this);
+			app.getvBoxCrunchers().getChildren().remove(this);
+			app.getFileInputs().forEach(fileInputView -> {
+				fileInputView.getFileInput().getCruncherList().remove(this);
+				fileInputView.getCrunchersList().getItems().remove(cruncherName);
+				fileInputView.getCbCruncherNames().getItems().remove(cruncherName);
+
+				if (fileInputView.getCbCruncherNames().getItems().isEmpty()) {
+					fileInputView.getBtnLinkCruncher().setDisable(true);
+				}
+
+				fileInputView.getBtnUnlinkCruncher().setDisable(true);
+			});
+			System.out.println("Cruncher " + this + " is removed!");
+		});
+
 		this.fileNamesList = new CopyOnWriteArrayList<>();
 		this.fileNamesList.add(new Label("Crunching:"));
 
