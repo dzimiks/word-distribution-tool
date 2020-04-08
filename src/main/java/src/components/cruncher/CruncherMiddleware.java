@@ -58,12 +58,13 @@ public class CruncherMiddleware implements Runnable {
 //					outputBlockingQueue.put(reserve);
 //					System.out.println("[CruncherMiddleware]: Sent file " + fileName + " to the output queue");
 
-//					CruncherWorker cruncherWorker = new CruncherWorker(filePath, entry.getValue(), arity, 0, entry.getValue().length() - 1);
-//					Map<String, Multiset<Object>> output = ((ForkJoinPool) threadPool).invoke(cruncherWorker);
+					// TODO: Fork Join Pool
+					CruncherWorker cruncherWorker = new CruncherWorker(filePath, entry.getValue(), arity, 0, entry.getValue().length() - 1);
+					Map<String, Multiset<Object>> output = ((ForkJoinPool) threadPool).invoke(cruncherWorker);
 
-					OldCruncherWorker cruncherWorker = new OldCruncherWorker(filePath, entry.getValue(), arity);
-					Future<Map<String, Multiset<Object>>> result = threadPool.submit(cruncherWorker);
-					Map<String, Multiset<Object>> output = result.get();
+//					OldCruncherWorker cruncherWorker = new OldCruncherWorker(filePath, entry.getValue(), arity);
+//					Future<Map<String, Multiset<Object>>> result = threadPool.submit(cruncherWorker);
+//					Map<String, Multiset<Object>> output = result.get();
 
 					List<Node> whatToRemove = new CopyOnWriteArrayList<>();
 					ObservableList<Node> children = cruncherView.getVbInputFiles().getChildren();
@@ -103,7 +104,7 @@ public class CruncherMiddleware implements Runnable {
 //						System.out.println(">>> " + key + " ===> " + out);
 //					}
 				}
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}

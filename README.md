@@ -138,17 +138,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > *Ako imamo datoteke koje se nalaze na različitim diskovima, onda ih treba čitati konkurentno, ali u jednom trenutku se vrši samo jedno čitanje sa jednog diska.
 > Dakle ni u jednom trenutku ne sme unutar ovog Thread Pool-a da bude aktivno više niti od broja diskova.
 
-### 2.2 Cruncher komponente
-
-> Svaki posao jedne niti unutar Thread Pool-a treba da bude definisan tako da se obavlja nad približno sličnom dužinom teksta (L), nezavisno od toga koliko je velika datoteka koja je došla na ulazu.  
-> Pri podeli jedne datoteke na delove je dozvoljeno da postoji jedan deo koji je značajno manji od L.  
-> Ostali delovi treba da budu približno jednaki L, gde pod “približno” dozvoljavamo okolinu L od dužine jedne reči.  
-> Parametar L se zadaje kroz konfiguracionu datoteku.  
-
-> Čim prebrojavanje za neki input objekat počne, treba svim output komponentama prijaviti da je taj posao započet, i omogućiti im da ga prikažu kao aktivnog.  
-> Na ime posla (naziv datoteke) se dodaje sufix “-arityX”, gde je X arnost za cruncher komponentu koja obavlja posao.  
-> Čim se posao završi, output komponente treba da imaju broj pojavljivanja svih vreća ove arnosti u ovom tekstu.
-
 ### 2.3 Output komponente
 
 > Ova komponenta treba da obezbedi agregaciju već izračunatih rezultata, konkretno unijom i sumiranjem.  
@@ -175,7 +164,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 ### 4.1 GUI
 
-> Output - Spisak rezultata, dat kao lista imena datoteka. Aktivni poslovi (koji se još uvek obrađuju unutar neke CounterCruncher komponente) imaju znak * pre imena.  
 > Dohvatanje rezultata.  
 > Ako rezultat nije spreman, prijaviti grešku.  
 > Rezultat treba sortirati opadajuće po broju pojavljivanja reči u posebnoj niti, čiji progres se prikazuje pomoću progress bar komponente.  
@@ -198,12 +186,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 ### Scenario 3
 
 > suma dok se crunchuju
-
-### Scenario 4
-
-> update output novim izmenjenim rezultatima za fajl
-
-> treba obrisati last modified kad se skloni directory i novi cruncher ce ponovo poceti da cita (pre toga nije nista radio)
 
 ### Scenario 5
 

@@ -215,7 +215,7 @@ public class FileInputView extends VBox {
 							if (fileName.endsWith(".txt")) {
 								String absolutePath = file.getAbsolutePath();
 
-								if (!fileInput.getSeenFiles().containsKey(absolutePath)) {
+								if (fileInput.getSeenFiles().containsKey(absolutePath)) {
 									fileInput.getSeenFiles().remove(absolutePath);
 									System.out.println("File: " + absolutePath + " is removed!");
 								}

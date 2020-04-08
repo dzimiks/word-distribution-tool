@@ -12,7 +12,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import src.components.cruncher.CruncherView;
 import src.components.input.FileInputView;
 import src.components.output.OutputView;
@@ -96,8 +95,8 @@ public class Main extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		this.inputThreadPool = Executors.newCachedThreadPool();
-		this.cruncherThreadPool = Executors.newCachedThreadPool();
-//		this.cruncherThreadPool = new ForkJoinPool();
+//		this.cruncherThreadPool = Executors.newCachedThreadPool();
+		this.cruncherThreadPool = new ForkJoinPool();
 		this.outputThreadPool = Executors.newCachedThreadPool();
 
 		// Init view
