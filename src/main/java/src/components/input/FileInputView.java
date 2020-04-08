@@ -27,6 +27,7 @@ public class FileInputView extends VBox {
 	private ComboBox<String> cbCruncherNames;
 	private Button btnLinkCruncher;
 	private Button btnUnlinkCruncher;
+	private Label lblFileInput;
 
 	public FileInputView(ExecutorService threadPool, Main app) {
 		this.threadPool = threadPool;
@@ -40,7 +41,7 @@ public class FileInputView extends VBox {
 
 	private void init() {
 		// Crunchers
-		Label lblFileInput = new Label("File Input: " + app.getComboBoxFileInput().getValue());
+		this.lblFileInput = new Label("File Input: " + app.getComboBoxFileInput().getValue());
 		Label lblCrunchersLabel = new Label("Crunchers:");
 
 		this.crunchersList = new ListView<>();
@@ -169,21 +170,24 @@ public class FileInputView extends VBox {
 
 		btnAddDirectory.setOnAction(event -> {
 			DirectoryChooser directoryChooser = new DirectoryChooser();
-			directoryChooser.setInitialDirectory(new File("data/disk1/"));
+			String rootDir = lblFileInput.getText().split(":")[1].trim();
+			directoryChooser.setInitialDirectory(new File(rootDir));
 			File selectedFile = directoryChooser.showDialog(null);
 
-			String value = selectedFile.getAbsolutePath();
+			if (selectedFile != null) {
+				String value = selectedFile.getAbsolutePath();
 
-			if (!directoriesList.getItems().contains(value)) {
-				directoriesList.getItems().add(value);
-				fileInput.getDirectories().add(value);
-			} else {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.initStyle(StageStyle.UTILITY);
-				alert.setTitle("Add Directory Error");
-				alert.setHeaderText("Error");
-				alert.setContentText("Directory '" + value + "' has been added already!");
-				alert.showAndWait();
+				if (!directoriesList.getItems().contains(value)) {
+					directoriesList.getItems().add(value);
+					fileInput.getDirectories().add(value);
+				} else {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.initStyle(StageStyle.UTILITY);
+					alert.setTitle("Add Directory Error");
+					alert.setHeaderText("Error");
+					alert.setContentText("Directory '" + value + "' has been added already!");
+					alert.showAndWait();
+				}
 			}
 		});
 
@@ -267,6 +271,7 @@ public class FileInputView extends VBox {
 		btnRemoveDiskInput.setOnAction(event -> {
 			app.getFileInputs().remove(this);
 			app.getvBoxFileInput().getChildren().remove(this);
+			app.getAddFileInputButton().setDisable(false);
 			System.out.println("Disk input " + this + " is removed!");
 		});
 
@@ -287,6 +292,10 @@ public class FileInputView extends VBox {
 		this.getChildren().add(lblStatus);
 
 		app.getvBoxFileInput().getChildren().add(this);
+	}
+
+	public Label getLblFileInput() {
+		return lblFileInput;
 	}
 
 	public FileInput getFileInput() {

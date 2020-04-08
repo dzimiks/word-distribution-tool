@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class Main extends Application {
 
@@ -136,6 +137,23 @@ public class Main extends Application {
 		this.addFileInputButton.setOnAction(event -> {
 			FileInputView fileInputView = new FileInputView(inputThreadPool, this);
 			this.fileInputs.add(fileInputView);
+			this.addFileInputButton.setDisable(true);
+		});
+
+		this.comboBoxFileInput.valueProperty().addListener(event -> {
+			String value = comboBoxFileInput.getValue();
+			System.out.println("CB changed to " + value);
+
+			// Check if at least one file input view contains selected combo box value
+			List<FileInputView> fileInputViewList = fileInputs.stream()
+					.filter(fileInputView -> fileInputView.getLblFileInput().getText().contains(value))
+					.collect(Collectors.toList());
+
+			if (!fileInputViewList.isEmpty()) {
+				this.addFileInputButton.setDisable(true);
+			} else {
+				this.addFileInputButton.setDisable(false);
+			}
 		});
 
 		this.vBoxFileInput.getChildren().add(fileInputLabel);

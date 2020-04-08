@@ -192,8 +192,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 ### Scenario 1
 
-> File input button da se stavi na disable
-> add directory button da postavi trenutni disk kao default starting point
 > output - buttons podesi normalno ponasanje
 > sum fali i sort
 
