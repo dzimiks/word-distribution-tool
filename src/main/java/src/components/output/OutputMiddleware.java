@@ -3,6 +3,8 @@ package src.components.output;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ListView;
 import src.main.Main;
@@ -43,7 +45,6 @@ public class OutputMiddleware implements Runnable {
 					String filePath = parts[parts.length - 1];
 
 					System.out.println("[Output]: " + filePath);
-//					System.out.println("Output value: " + entry.getValue());
 
 					// TODO: Thread pool?
 //					Future<?> result = threadPool.submit(this);
@@ -56,7 +57,26 @@ public class OutputMiddleware implements Runnable {
 					// TODO: Put data
 					this.outputData.putIfAbsent(entry.getKey(), entry.getValue());
 
-					Platform.runLater(() -> outputList.getItems().add(filePath));
+					Platform.runLater(() -> {
+						if (filePath.charAt(0) == '*' && !outputList.getItems().contains(filePath)) {
+							outputList.getItems().add(filePath);
+							System.out.println(filePath);
+						} else {
+							ObservableList<String> items = outputList.getItems();
+							int itemsLength = items.size();
+
+							for (int i = 0; i < itemsLength; i++) {
+								String item = items.get(i);
+
+								if (item.contains(filePath)) {
+//									System.out.println("[" + i + "]: " + item);
+//									System.out.println(filePath);
+									outputList.getItems().remove(item);
+									outputList.getItems().add(i, filePath);
+								}
+							}
+						}
+					});
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();

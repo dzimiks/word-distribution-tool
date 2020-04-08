@@ -31,6 +31,10 @@ public class CounterCruncher implements Runnable {
 		thread.start();
 	}
 
+	public int getArity() {
+		return arity;
+	}
+
 	public BlockingQueue<Map<String, String>> getInputBlockingQueue() {
 		return inputBlockingQueue;
 	}

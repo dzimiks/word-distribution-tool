@@ -1,16 +1,16 @@
 package src.components.input;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multiset;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import src.components.cruncher.CruncherView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class FileInputMiddleware implements Runnable {
 
@@ -50,21 +50,27 @@ public class FileInputMiddleware implements Runnable {
 				});
 
 				cruncherList.forEach(cruncher -> {
-					// TODO: Add read files to cruncher
+					// Add read files to cruncher
 					cruncher.getCruncher().getInputBlockingQueue().add(map);
-					System.out.println("[Cruncher]: " + cruncher + " got map: " + map.keySet());
+					System.out.println("[Cruncher]: " + cruncher + " got " + map.keySet());
 
 					for (Map.Entry<String, String> entry : map.entrySet()) {
 						String absolutePath = entry.getKey();
 						String[] parts = absolutePath.split(String.valueOf(File.separatorChar));
 						String filePath = parts[parts.length - 1];
 
-						System.out.println("[Future]: " + filePath + " => " + entry.getValue().length());
+						Map<String, ImmutableList<Multiset.Entry<Object>>> reserve = new ConcurrentHashMap<>();
+						ImmutableList<Multiset.Entry<Object>> immutableList = ImmutableList.copyOf(new ArrayList<>());
+						String newFile = "*" + filePath + "-arity" + cruncher.getCruncher().getArity();
+						reserve.put(newFile, immutableList);
+
+						// TODO: Sent non-crunched file to output
+						cruncher.getCruncher().getOutputBlockingQueue().add(reserve);
+
+						System.out.println(cruncher + ": " + filePath + " size: " + entry.getValue().length());
 						System.out.println();
 
 						Label inputFile = new Label(filePath);
-						cruncher.getFileNamesList().add(inputFile);
-
 						Platform.runLater(() -> cruncher.getVbInputFiles().getChildren().add(inputFile));
 					}
 				});

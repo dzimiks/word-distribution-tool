@@ -12,7 +12,6 @@ import src.utils.Constants;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
 public class CruncherView extends VBox {
@@ -21,7 +20,6 @@ public class CruncherView extends VBox {
 	private Label lblCruncherName;
 	private Label lblCruncherArity;
 	private Button btnRemoveCruncher;
-	private List<Label> fileNamesList;
 	private CounterCruncher cruncher;
 	private VBox vbInputFiles;
 
@@ -59,12 +57,9 @@ public class CruncherView extends VBox {
 			System.out.println("Cruncher " + this + " is removed!");
 		});
 
-		this.fileNamesList = new CopyOnWriteArrayList<>();
-		this.fileNamesList.add(new Label("Crunching:"));
-
 		this.vbInputFiles = new VBox();
 		this.vbInputFiles.setSpacing(Constants.DEFAULT_PADDING);
-		this.fileNamesList.forEach(item -> vbInputFiles.getChildren().add(item));
+		this.vbInputFiles.getChildren().add(new Label("Crunching:"));
 
 		// Config
 		this.setSpacing(Constants.DEFAULT_PADDING);
@@ -90,10 +85,6 @@ public class CruncherView extends VBox {
 
 	public Button getBtnRemoveCruncher() {
 		return btnRemoveCruncher;
-	}
-
-	public List<Label> getFileNamesList() {
-		return fileNamesList;
 	}
 
 	public CounterCruncher getCruncher() {

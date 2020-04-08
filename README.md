@@ -175,8 +175,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 ### 4.1 GUI
 
-> Cruncher - Skloniti fajl kad zavrsi crunching
-
 > Output - Spisak rezultata, dat kao lista imena datoteka. Aktivni poslovi (koji se još uvek obrađuju unutar neke CounterCruncher komponente) imaju znak * pre imena.  
 > Dohvatanje rezultata.  
 > Ako rezultat nije spreman, prijaviti grešku.  
@@ -196,8 +194,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > File input button da se stavi na disable
 > add directory button da postavi trenutni disk kao default starting point
-> remove disk input ne radi
-> remove cruncher ne radi
 > output - buttons podesi normalno ponasanje
 > sum fali i sort
 
@@ -217,11 +213,7 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 ### Random
 
-> jel ok da pravim sva 3 thread pool-a u main-u?
-
 > idle label ima mali delay kada zavrsi sa citanjem, pa se tek onda promeni
-
-> bug se desi - doda 2x isti fajl kada se pauzira -> doda fajl -> startuje dugme - NE SME DA PRAVI NOVI THREAD STALNO
 
 > gasenje aplikacije da se sredi i dok radi input
 
