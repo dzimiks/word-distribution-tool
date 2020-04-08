@@ -1,5 +1,6 @@
 package src.components.input;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import javafx.application.Platform;
@@ -59,10 +60,10 @@ public class FileInputMiddleware implements Runnable {
 						String[] parts = absolutePath.split(String.valueOf(File.separatorChar));
 						String filePath = parts[parts.length - 1];
 
-						Map<String, ImmutableList<Multiset.Entry<Object>>> reserve = new ConcurrentHashMap<>();
-						ImmutableList<Multiset.Entry<Object>> immutableList = ImmutableList.copyOf(new ArrayList<>());
+						Map<String, Multiset<Object>> reserve = new ConcurrentHashMap<>();
+						Multiset<Object> multiset = HashMultiset.create();
 						String newFile = "*" + filePath + "-arity" + cruncher.getCruncher().getArity();
-						reserve.put(newFile, immutableList);
+						reserve.put(newFile, multiset);
 
 						// TODO: Sent non-crunched file to output
 						cruncher.getCruncher().getOutputBlockingQueue().add(reserve);

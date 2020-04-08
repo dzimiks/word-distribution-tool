@@ -12,6 +12,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import src.components.cruncher.CruncherView;
 import src.components.input.FileInputView;
 import src.components.output.OutputView;
@@ -27,6 +28,7 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 public class Main extends Application {
@@ -49,7 +51,7 @@ public class Main extends Application {
 
 	// Chart
 	private LineChart<Number, Number> lineChart;
-	public static Series<Number, Number> series;
+	private Series<Number, Number> series;
 	private List<Data<Number, Number>> data;
 	private NumberAxis xAxis;
 	private NumberAxis yAxis;
@@ -76,7 +78,19 @@ public class Main extends Application {
 	private ExecutorService outputThreadPool;
 
 	public static void main(String[] args) {
-		launch(args);
+//		try {
+			launch(args);
+//		} catch (OutOfMemoryError e) {
+//			e.printStackTrace();
+//
+//			Alert alert = new Alert(Alert.AlertType.ERROR);
+//			alert.initStyle(StageStyle.UTILITY);
+//			alert.setTitle("Link Cruncher Error");
+//			alert.setHeaderText("Error");
+//			alert.setContentText("Out of memory error");
+//			alert.showAndWait();
+//			System.exit(0);
+//		}
 	}
 
 	@Override
@@ -224,7 +238,7 @@ public class Main extends Application {
 		this.mainView.setLeft(hBoxInputAndCruncher);
 		this.mainView.setCenter(lineChart);
 
-		this.outputView = new OutputView(outputThreadPool);
+		this.outputView = new OutputView(outputThreadPool, this);
 		this.outputViews.add(outputView);
 		this.mainView.setRight(outputView);
 	}

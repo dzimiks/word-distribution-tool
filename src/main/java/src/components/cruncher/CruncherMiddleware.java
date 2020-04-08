@@ -1,9 +1,9 @@
 package src.components.cruncher;
 
-import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
@@ -17,7 +17,7 @@ public class CruncherMiddleware implements Runnable {
 
 	private ExecutorService threadPool;
 	private BlockingQueue<Map<String, String>> inputBlockingQueue;
-	private BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue;
+	private BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue;
 	private CruncherView cruncherView;
 	private int arity;
 
@@ -25,7 +25,7 @@ public class CruncherMiddleware implements Runnable {
 							  CruncherView cruncherView,
 							  int arity,
 							  BlockingQueue<Map<String, String>> inputBlockingQueue,
-							  BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue) {
+							  BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue) {
 		this.threadPool = threadPool;
 		this.cruncherView = cruncherView;
 		this.arity = arity;
@@ -58,13 +58,18 @@ public class CruncherMiddleware implements Runnable {
 //					outputBlockingQueue.put(reserve);
 //					System.out.println("[CruncherMiddleware]: Sent file " + fileName + " to the output queue");
 
-					CruncherWorker cruncherWorker = new CruncherWorker(filePath, entry.getValue(), arity);
-					Future<Map<String, ImmutableList<Multiset.Entry<Object>>>> result = threadPool.submit(cruncherWorker);
-					Map<String, ImmutableList<Multiset.Entry<Object>>> output = result.get();
+//					CruncherWorker cruncherWorker = new CruncherWorker(filePath, entry.getValue(), arity, 0, entry.getValue().length() - 1);
+//					Map<String, Multiset<Object>> output = ((ForkJoinPool) threadPool).invoke(cruncherWorker);
+
+					OldCruncherWorker cruncherWorker = new OldCruncherWorker(filePath, entry.getValue(), arity);
+					Future<Map<String, Multiset<Object>>> result = threadPool.submit(cruncherWorker);
+					Map<String, Multiset<Object>> output = result.get();
+
 					List<Node> whatToRemove = new CopyOnWriteArrayList<>();
+					ObservableList<Node> children = cruncherView.getVbInputFiles().getChildren();
 
 					// Remove file from cruncher
-					for (Node node : cruncherView.getVbInputFiles().getChildren()) {
+					for (Node node : children) {
 						if (node instanceof Label) {
 							Label label = (Label) node;
 
@@ -87,13 +92,16 @@ public class CruncherMiddleware implements Runnable {
 					outputBlockingQueue.put(output);
 					System.out.println("[CruncherMiddleware]: Sent crunched " + fileName + " to the output queue");
 
-					for (Map.Entry<String, ImmutableList<Multiset.Entry<Object>>> value : output.entrySet()) {
-						String key = value.getKey();
-						ImmutableList<Multiset.Entry<Object>> val = value.getValue();
-
-						System.out.println(">>> " + key);
-//						System.out.println(">>> " + key + " ===> " + val);
-					}
+//					for (Map.Entry<String, Multiset<Object>> value : output.entrySet()) {
+//						String key = value.getKey();
+//						Multiset<Object> val = value.getValue();
+//
+//						ImmutableList<Multiset.Entry<Object>> list = Multisets.copyHighestCountFirst(val).entrySet().asList();
+//						ImmutableList<Multiset.Entry<Object>> out = list.subList(0, Math.min(list.size(), 100));
+//
+////						System.out.println(">>> " + key);
+//						System.out.println(">>> " + key + " ===> " + out);
+//					}
 				}
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();

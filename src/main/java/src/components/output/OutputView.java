@@ -1,7 +1,9 @@
 package src.components.output;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.chart.XYChart;
@@ -26,9 +28,11 @@ public class OutputView extends VBox {
 
 	private ExecutorService threadPool;
 	private CacheOutput cacheOutput;
+	private Main app;
 
-	public OutputView(ExecutorService threadPool) {
+	public OutputView(ExecutorService threadPool, Main app) {
 		this.threadPool = threadPool;
+		this.app = app;
 
 		// Config
 		this.setSpacing(Constants.DEFAULT_PADDING);
@@ -42,16 +46,19 @@ public class OutputView extends VBox {
 
 		this.btnSingleResult.setOnAction(event -> {
 			String selectedItem = this.resultList.getSelectionModel().getSelectedItem();
-
 			System.out.println("SINGLE RESULT ITEM: " + selectedItem);
 
-			Map<String, ImmutableList<Multiset.Entry<Object>>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
-			ImmutableList<Multiset.Entry<Object>> result = outputData.get(selectedItem);
+			Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+			Multiset<Object> result = outputData.get(selectedItem);
 			List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
 			AtomicInteger counter = new AtomicInteger(0);
 
-			for (int i = 0; i < result.size(); i++) {
-				Multiset.Entry<Object> bow = result.get(i);
+			// First 100 results
+			ImmutableList<Multiset.Entry<Object>> fullResult = Multisets.copyHighestCountFirst(result).entrySet().asList();
+			ImmutableList<Multiset.Entry<Object>> finalResult = fullResult.subList(0, Math.min(fullResult.size(), 100));
+
+			for (int i = 0; i < finalResult.size(); i++) {
+				Multiset.Entry<Object> bow = finalResult.get(i);
 				XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
 				data.add(newData);
 
@@ -61,8 +68,9 @@ public class OutputView extends VBox {
 			}
 
 			Platform.runLater(() -> {
-				Main.series.getData().clear();
-				Main.series.getData().addAll(data);
+				app.getSeries().getData().clear();
+				app.getSeries().getData().addAll(data);
+				app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
 			});
 		});
 

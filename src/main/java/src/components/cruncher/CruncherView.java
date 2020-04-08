@@ -28,7 +28,7 @@ public class CruncherView extends VBox {
 
 	public CruncherView(ExecutorService threadPool,
 						Main app,
-						BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue,
+						BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue,
 						String cruncherName,
 						String arity) {
 		this.threadPool = threadPool;

@@ -18,12 +18,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class OutputMiddleware implements Runnable {
 
 	private ExecutorService threadPool;
-	private BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue;
+	private BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue;
 	private ListView<String> outputList;
-	private Map<String, ImmutableList<Multiset.Entry<Object>>> outputData;
+	private Map<String, Multiset<Object>> outputData;
 
 	public OutputMiddleware(ExecutorService threadPool,
-							BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue,
+							BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue,
 							ListView<String> outputList) {
 		this.threadPool = threadPool;
 		this.outputBlockingQueue = outputBlockingQueue;
@@ -37,9 +37,9 @@ public class OutputMiddleware implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				Map<String, ImmutableList<Multiset.Entry<Object>>> output = outputBlockingQueue.take();
+				Map<String, Multiset<Object>> output = outputBlockingQueue.take();
 
-				for (Map.Entry<String, ImmutableList<Multiset.Entry<Object>>> entry : output.entrySet()) {
+				for (Map.Entry<String, Multiset<Object>> entry : output.entrySet()) {
 					String fileAbsolutePath = entry.getKey();
 					String[] parts = fileAbsolutePath.split(String.valueOf(File.separatorChar));
 					String filePath = parts[parts.length - 1];
@@ -84,7 +84,7 @@ public class OutputMiddleware implements Runnable {
 		}
 	}
 
-	public Map<String, ImmutableList<Multiset.Entry<Object>>> getOutputData() {
+	public Map<String, Multiset<Object>> getOutputData() {
 		return outputData;
 	}
 }

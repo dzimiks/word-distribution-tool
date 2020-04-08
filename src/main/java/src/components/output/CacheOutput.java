@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class CacheOutput implements Runnable {
 
 	private ExecutorService threadPool;
-	private BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue;
+	private BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue;
 	private OutputMiddleware outputMiddleware;
 	private ListView<String> outputList;
 
@@ -35,7 +35,7 @@ public class CacheOutput implements Runnable {
 		return outputMiddleware;
 	}
 
-	public BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> getOutputBlockingQueue() {
+	public BlockingQueue<Map<String, Multiset<Object>>> getOutputBlockingQueue() {
 		return outputBlockingQueue;
 	}
 }

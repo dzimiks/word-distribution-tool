@@ -1,42 +1,99 @@
 package src.components.cruncher;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
+import src.main.Main;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.RecursiveTask;
 
-public class CruncherWorker implements Callable<Map<String, ImmutableList<Multiset.Entry<Object>>>> {
+public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>> {
 
 	private String fileName;
 	private String input;
 	private int arity;
+	private int start;
+	private int end;
 
-	public CruncherWorker(String fileName, String input, int arity) {
+	public CruncherWorker(String fileName, String input, int arity, int start, int end) {
 		this.fileName = fileName;
 		this.input = input;
 		this.arity = arity;
+		this.start = start;
+		this.end = end;
+
 		System.out.println("CruncherWorker init\n");
 	}
 
 	@Override
-	public Map<String, ImmutableList<Multiset.Entry<Object>>> call() throws Exception {
-		Map<String, ImmutableList<Multiset.Entry<Object>>> output = new ConcurrentHashMap<>();
-		// TODO: How much to return?
-		ImmutableList<Multiset.Entry<Object>> fullResult = getMostOccurringBOW(input, arity);
-		ImmutableList<Multiset.Entry<Object>> result = fullResult.subList(0, Math.min(fullResult.size(), 100));
-		output.put(fileName + "-arity" + arity, result);
-		return output;
+	protected Map<String, Multiset<Object>> compute() {
+		System.out.println("Start: " + start);
+		System.out.println("End: " + end);
+
+		Map<String, Multiset<Object>> output = new ConcurrentHashMap<>();
+
+		if (end - start <= Main.COUNTER_DATA_LIMIT) {
+			Multiset<Object> fullResult = getMostOccurringBOW(input, start, end, arity);
+			output.put(fileName + "-arity" + arity, fullResult);
+			return output;
+		}
+
+		int leftEnd = start + Main.COUNTER_DATA_LIMIT;
+		int rightStart;
+
+		while (input.charAt(leftEnd) != ' ' && leftEnd > start) {
+			leftEnd--;
+		}
+
+		leftEnd--;
+
+		if (arity == 1) {
+			rightStart = leftEnd + 1;
+		} else {
+			rightStart = leftEnd;
+			int n = arity - 1;
+
+			while (n > 0) {
+				rightStart--;
+
+				if (input.charAt(rightStart) == ' ' && input.charAt(rightStart + 1) != ' ') {
+					n--;
+				}
+			}
+		}
+
+		while (input.charAt(rightStart) == ' ') {
+			rightStart++;
+		}
+
+		CruncherWorker computeJob = new CruncherWorker(fileName, input, arity, start, leftEnd);
+		CruncherWorker forkJob = new CruncherWorker(fileName, input, arity, rightStart, end);
+		forkJob.fork();
+
+		Map<String, Multiset<Object>> leftResult = computeJob.compute();
+		Map<String, Multiset<Object>> rightResult = forkJob.join();
+
+		rightResult.keySet().forEach(key -> {
+			if (leftResult.containsKey(key)) {
+				leftResult.put(key, Multisets.sum(leftResult.get(key), rightResult.get(key)));
+			} else {
+				leftResult.put(key, rightResult.get(key));
+			}
+		});
+
+		return leftResult;
 	}
 
-	private ImmutableList<Multiset.Entry<Object>> getMostOccurringBOW(String input, int arity) throws IOException {
-		List<String> words = new CopyOnWriteArrayList<>(Arrays.asList(input.split("\\s")));
-		ConcurrentHashMultiset<Object> multiset = ConcurrentHashMultiset.create();
+	private Multiset<Object> getMostOccurringBOW(String input, int start, int end, int arity) {
+		List<String> words = new CopyOnWriteArrayList<>(Arrays.asList(input.substring(start, end + 1).split("\\s")));
+		Multiset<Object> multiset = ConcurrentHashMultiset.create();
 		int wordsLength = words.size();
 		List<String> bagOfWords;
 
@@ -48,9 +105,7 @@ public class CruncherWorker implements Callable<Map<String, ImmutableList<Multis
 			multiset.add(bagOfWords);
 		}
 
-		ImmutableSet<Multiset.Entry<Object>> entriesSortedByCount = Multisets.copyHighestCountFirst(multiset).entrySet();
-		System.out.println("entriesSortedByCount size: " + entriesSortedByCount.size());
-		return entriesSortedByCount.asList();
+		return multiset;
 	}
 
 	private List<String> getBagOfWords(List<String> words, int length, int startIndex, int endIndex) {

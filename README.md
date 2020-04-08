@@ -209,6 +209,8 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > -Xms500m -Xmx500m treba da obori app
 
+> -Xms3g -Xmx3g treba da radi
+
 ### Random
 
 > idle label ima mali delay kada zavrsi sa citanjem, pa se tek onda promeni

@@ -9,14 +9,14 @@ import java.util.concurrent.*;
 public class CounterCruncher implements Runnable {
 
 	private BlockingQueue<Map<String, String>> inputBlockingQueue;
-	private BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue;
+	private BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue;
 	private ExecutorService threadPool;
 	private CruncherMiddleware cruncherMiddleware;
 	private int arity;
 
 	public CounterCruncher(ExecutorService threadPool,
 						   CruncherView cruncherView,
-						   BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> outputBlockingQueue,
+						   BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue,
 						   int arity) {
 		this.threadPool = threadPool;
 		this.arity = arity;
@@ -39,7 +39,7 @@ public class CounterCruncher implements Runnable {
 		return inputBlockingQueue;
 	}
 
-	public BlockingQueue<Map<String, ImmutableList<Multiset.Entry<Object>>>> getOutputBlockingQueue() {
+	public BlockingQueue<Map<String, Multiset<Object>>> getOutputBlockingQueue() {
 		return outputBlockingQueue;
 	}
 }
