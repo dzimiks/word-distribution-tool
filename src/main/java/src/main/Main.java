@@ -1,6 +1,7 @@
 package src.main;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
@@ -12,6 +13,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import src.components.cruncher.CruncherView;
 import src.components.input.FileInputView;
 import src.components.output.OutputView;
@@ -24,10 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class Main extends Application {
@@ -111,6 +110,23 @@ public class Main extends Application {
 			inputThreadPool.shutdown();
 			cruncherThreadPool.shutdown();
 			outputThreadPool.shutdown();
+
+			Alert alert = new Alert(Alert.AlertType.NONE);
+			alert.initStyle(StageStyle.UTILITY);
+			alert.setTitle("Info");
+			alert.setHeaderText("Close App");
+			alert.setContentText("Terminating app...");
+			alert.showAndWait();
+
+			try {
+				inputThreadPool.awaitTermination(5, TimeUnit.SECONDS);
+//				cruncherThreadPool.awaitTermination(5, TimeUnit.SECONDS);
+//				outputThreadPool.awaitTermination(5, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			Platform.exit();
 		});
 	}
 

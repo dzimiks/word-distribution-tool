@@ -127,7 +127,7 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 - ForkJoinPool prosledjujemo svim FileInput komponentama i ogranicimo broj threadova
 - svaka FileInput komponenta koristi max broj threadova u tom pool-u
 
-# PITANJA ZA BANETA I STA JOS FALI
+# PITANJA I STA JOS FALI
 
 ## 2 Opis sistema
 
@@ -135,20 +135,31 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > kako da konkurentno citamo fajlove sa razlicitih diskova?
 
-> *Ako imamo datoteke koje se nalaze na različitim diskovima, onda ih treba čitati konkurentno, ali u jednom trenutku se vrši samo jedno čitanje sa jednog diska.
+> kako da ogranicim ovo? koji thread poll da se koristi?
+> Ako imamo datoteke koje se nalaze na različitim diskovima, onda ih treba čitati konkurentno, ali u jednom trenutku se vrši samo jedno čitanje sa jednog diska.
 > Dakle ni u jednom trenutku ne sme unutar ovog Thread Pool-a da bude aktivno više niti od broja diskova.
+
+### 2.2 Cruncher komponente
+
+> gde se salje outputu da je zapocet cruncher, posto trenutno saljem sa inputa ka output da je posao spreman za crunching
+
+> Čim prebrojavanje za neki input objekat počne, treba svim output komponentama prijaviti da je taj posao započet, i omogućiti im da ga prikažu kao aktivnog.  
 
 ### 2.3 Output komponente
 
 > Ova komponenta treba da obezbedi agregaciju već izračunatih rezultata, konkretno unijom i sumiranjem.  
 > Output komponenti treba da bude moguće zadati posao koji će ovo da obavlja i taj posao treba obavljati unutar Thread Pool-a koji je namenjen za sve output komponente.  
+
+> sta znaci unija ova? zar ne treba na single result da se dobije vrednost za taj fajl, a sum ce da sumira za sve selektovane?
 > Sama agregacija se radi tako što se formira unija svih navedenih rezultata.  
 > Ako u različitim rezultatima postoje brojevi pojavljivanja za jednu te istu reč ili vreću, onda treba sumirati te rezultate u uniji.  
 > Posao treba da počne od praznog skupa i da čeka da rezultati postanu dostupni u proizvoljnom redosledu.  
 > Nije potrebno dodavati rezultate u redosledu u kojem su postali dostupni.
 
 > Za sve rezultate (pojedinačne i sumirane) treba obezbediti operacije poll() i take().  
+> jel okej za poll() samo da proverim da li u listview naziv ima zvezdicu (*) ili ne?
 > Operacija poll() je neblokirajuća operacija čitanja koja vraća null ako rezultat još uvek nije spreman.  
+
 > Operacija take() treba da blokira nit koja ju je pozvala sve dok rezultati nisu spremni za čitanje.  
 > Ako su rezultati spremni, operacija take() nije blokirajuća, već samo vraća rezultate.
 
@@ -156,24 +167,20 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > U slučaju da tokom rada ponestane RAM-a pri čitanju ili obradi, treba prijaviti grešku i odmah prekinuti rad čitavog programa, bez urednog gašenja svih poslova i niti.
 
-> Ako se traže rezultati izračunavanja, a oni nisu spremni za prikaz, to treba prijaviti.
+> Ako se traže rezultati izračunavanja, a oni nisu spremni za prikaz, to treba prijaviti. - ovo je poll(), trenutno gledam samo zvezdicu ako ima i bacim alert
 
 > Izlaz iz aplikacije treba da bude uredan, što podrazumeva zabranu započinjanja novih poslova, čekanje da se svi započeti poslovi završe, i gašenje svih niti bez nasilnog prekidanja.  
+> file input i cruncher poslovi bacaju out of memory error i to catchujem, prikazujem alert i gasim sistem preko system.exit(0) - jel to okej?
 
 ## 4 GUI i podešavanje sistema
 
 ### 4.1 GUI
 
-> Dohvatanje rezultata.  
-> Ako rezultat nije spreman, prijaviti grešku.  
+> kako da racunam vreme za progress bar?
 > Rezultat treba sortirati opadajuće po broju pojavljivanja reči u posebnoj niti, čiji progres se prikazuje pomoću progress bar komponente.  
 > Progres se osvežava na svakih K poređenja unutar procesa sortiranja, gde se K čita iz konfiguracione datoteke.  
 > Pretpostaviti da će čitav proces imati N*logN poređenja ako se koristi Collections.sort().  
-> Nakon što je sortiranje završeno, rezultati se prikazuju kao linijski grafik učestalosti za prvih 100 reči (bez prikazivanja samih reči).  
 
-> Započinjanje agregacionog posla.  
-> Pre početka posla pitati korisnika za jedinstveni naziv sume.  
-> Ako uneti naziv nije jedinstven, prijaviti grešku.  
 > Tokom sumiranja prikazati progres pomoću progress bar komponente koja se osvežava nakon svakog spajanja rezultata.  
 > Ako je startovano više suma, prikazati progres za svaku od njih.
 
@@ -198,6 +205,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > idle label ima mali delay kada zavrsi sa citanjem, pa se tek onda promeni
 
-> gasenje aplikacije da se sredi i dok radi input
-
-> bug kad se ne odabere cruncher, a odabere directory i pokrene start - ne sme da krene da cita
+> gasenje aplikacije da se sredi i dok radi input - kako da se resi gasenje?
+> jel moze preko shutdown(), pa awaitTermination()
+> i kako da prestanem nakon toga da ubacujem fajlove u crunchera?
