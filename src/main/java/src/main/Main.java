@@ -77,19 +77,7 @@ public class Main extends Application {
 	private ExecutorService outputThreadPool;
 
 	public static void main(String[] args) {
-//		try {
-			launch(args);
-//		} catch (OutOfMemoryError e) {
-//			e.printStackTrace();
-//
-//			Alert alert = new Alert(Alert.AlertType.ERROR);
-//			alert.initStyle(StageStyle.UTILITY);
-//			alert.setTitle("Link Cruncher Error");
-//			alert.setHeaderText("Error");
-//			alert.setContentText("Out of memory error");
-//			alert.showAndWait();
-//			System.exit(0);
-//		}
+		launch(args);
 	}
 
 	@Override

@@ -170,6 +170,7 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > Progres se osvežava na svakih K poređenja unutar procesa sortiranja, gde se K čita iz konfiguracione datoteke.  
 > Pretpostaviti da će čitav proces imati N*logN poređenja ako se koristi Collections.sort().  
 > Nakon što je sortiranje završeno, rezultati se prikazuju kao linijski grafik učestalosti za prvih 100 reči (bez prikazivanja samih reči).  
+
 > Započinjanje agregacionog posla.  
 > Pre početka posla pitati korisnika za jedinstveni naziv sume.  
 > Ako uneti naziv nije jedinstven, prijaviti grešku.  

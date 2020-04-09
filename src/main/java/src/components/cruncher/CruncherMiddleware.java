@@ -5,7 +5,9 @@ import com.google.common.collect.Multiset;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -106,6 +108,19 @@ public class CruncherMiddleware implements Runnable {
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			} catch (OutOfMemoryError error) {
+				error.printStackTrace();
+
+				Platform.runLater(() -> {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.initStyle(StageStyle.UTILITY);
+					alert.setTitle("Cruncher Error");
+					alert.setHeaderText("Error");
+					alert.setContentText("Out of memory error");
+					alert.showAndWait();
+
+					System.exit(0);
+				});
 			}
 		}
 	}

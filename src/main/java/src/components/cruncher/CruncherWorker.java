@@ -33,7 +33,7 @@ public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>>
 	}
 
 	@Override
-	protected Map<String, Multiset<Object>> compute() {
+	protected Map<String, Multiset<Object>> compute() throws OutOfMemoryError {
 		System.out.println("Start: " + start);
 		System.out.println("End: " + end);
 

@@ -6,6 +6,8 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
@@ -32,6 +34,12 @@ public class OutputView extends VBox {
 	private CacheOutput cacheOutput;
 	private Main app;
 
+	private ProgressBar sortProgressBar;
+	private ProgressBar sumProgressBar;
+
+	private Label lblProgress;
+	private ProgressBarTask currentProgressBarTask;
+
 	public OutputView(ExecutorService threadPool, Main app) {
 		this.threadPool = threadPool;
 		this.app = app;
@@ -52,30 +60,41 @@ public class OutputView extends VBox {
 			String selectedItem = this.resultList.getSelectionModel().getSelectedItem();
 			System.out.println("SINGLE RESULT ITEM: " + selectedItem);
 
-			Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
-			Multiset<Object> result = outputData.get(selectedItem);
-			List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
-			AtomicInteger counter = new AtomicInteger(0);
+			if (selectedItem.charAt(0) != '*') {
+				Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+				Multiset<Object> result = outputData.get(selectedItem);
+				List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
+				AtomicInteger counter = new AtomicInteger(0);
 
-			// First 100 results
-			ImmutableList<Multiset.Entry<Object>> fullResult = Multisets.copyHighestCountFirst(result).entrySet().asList();
-			ImmutableList<Multiset.Entry<Object>> finalResult = fullResult.subList(0, Math.min(fullResult.size(), 100));
+				// First 100 results
+				ImmutableList<Multiset.Entry<Object>> fullResult = Multisets.copyHighestCountFirst(result).entrySet().asList();
+				ImmutableList<Multiset.Entry<Object>> finalResult = fullResult.subList(0, Math.min(fullResult.size(), 100));
 
-			for (int i = 0; i < finalResult.size(); i++) {
-				Multiset.Entry<Object> bow = finalResult.get(i);
-				XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
-				data.add(newData);
+				for (int i = 0; i < finalResult.size(); i++) {
+					Multiset.Entry<Object> bow = finalResult.get(i);
+					XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
+					data.add(newData);
 
-				if (i < 10) {
-					System.out.println(i + ": " + bow);
+					if (i < 10) {
+						System.out.println(i + ": " + bow);
+					}
 				}
-			}
 
-			Platform.runLater(() -> {
-				app.getSeries().getData().clear();
-				app.getSeries().getData().addAll(data);
-				app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
-			});
+				progressBarTest(result.size());
+
+				Platform.runLater(() -> {
+					app.getSeries().getData().clear();
+					app.getSeries().getData().addAll(data);
+					app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
+				});
+			} else {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.initStyle(StageStyle.UTILITY);
+				alert.setTitle("Output View Error");
+				alert.setHeaderText("Error");
+				alert.setContentText("This job is not finished!");
+				alert.showAndWait();
+			}
 		});
 
 		this.btnSumResult = new Button("Sum Result");
@@ -134,12 +153,36 @@ public class OutputView extends VBox {
 		});
 
 		this.cacheOutput = new CacheOutput(threadPool, resultList);
-		this.getChildren().addAll(resultList, btnSingleResult, btnSumResult);
+
+		this.sortProgressBar = new ProgressBar();
+		this.sumProgressBar = new ProgressBar();
+		this.lblProgress = new Label("0%");
+
+		this.getChildren().addAll(resultList, btnSingleResult, btnSumResult, sortProgressBar, sumProgressBar, lblProgress);
 
 		Thread thread = new Thread(cacheOutput);
 		thread.start();
 
 		System.out.println("OutputView init\n");
+	}
+
+	private void progressBarTest(int resultSize) {
+		ProgressBarTask progressBarTask = new ProgressBarTask(resultSize);
+		currentProgressBarTask = progressBarTask;
+		sortProgressBar.progressProperty().bind(progressBarTask.progressProperty());
+		sumProgressBar.progressProperty().bind(progressBarTask.progressProperty());
+		lblProgress.textProperty().bind(progressBarTask.messageProperty());
+
+		EventHandler<WorkerStateEvent> jobDoneEvent = event -> {
+			btnSingleResult.setDisable(false);
+			btnSumResult.setDisable(false);
+		};
+
+		progressBarTask.setOnSucceeded(jobDoneEvent);
+		progressBarTask.setOnCancelled(jobDoneEvent);
+
+		Thread thread = new Thread(progressBarTask);
+		thread.start();
 	}
 
 	public ListView<String> getResultList() {

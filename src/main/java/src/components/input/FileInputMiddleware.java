@@ -4,7 +4,9 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
 import src.components.cruncher.CruncherView;
 
 import java.io.File;
@@ -75,8 +77,19 @@ public class FileInputMiddleware implements Runnable {
 						Platform.runLater(() -> cruncher.getVbInputFiles().getChildren().add(inputFile));
 					}
 				});
-			} catch (ExecutionException | InterruptedException e) {
+			} catch (ExecutionException | InterruptedException | OutOfMemoryError e) {
 				e.printStackTrace();
+
+				Platform.runLater(() -> {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.initStyle(StageStyle.UTILITY);
+					alert.setTitle("File Input Error");
+					alert.setHeaderText("Error");
+					alert.setContentText("Out of memory error");
+					alert.showAndWait();
+
+					System.exit(0);
+				});
 			}
 		}
 	}

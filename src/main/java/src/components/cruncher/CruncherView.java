@@ -54,6 +54,7 @@ public class CruncherView extends VBox {
 
 				fileInputView.getBtnUnlinkCruncher().setDisable(true);
 			});
+
 			System.out.println("Cruncher " + this + " is removed!");
 		});
 
