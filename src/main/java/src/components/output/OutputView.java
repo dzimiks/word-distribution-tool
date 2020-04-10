@@ -3,7 +3,6 @@ package src.components.output;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
@@ -87,9 +86,11 @@ public class OutputView extends VBox {
 			} else {
 				try {
 					String selectedItem = selectedItems.get(0);
-					ImmutableList<Multiset.Entry<Object>> output = poll(selectedItem);
+					Future<ImmutableList<Multiset.Entry<Object>>> result = poll(selectedItem);
 
-					if (output != null) {
+					if (result != null) {
+						ImmutableList<Multiset.Entry<Object>> output = result.get();
+
 						List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
 						AtomicInteger counter = new AtomicInteger(0);
 
@@ -143,20 +144,26 @@ public class OutputView extends VBox {
 					if (!sumList.contains(sumName)) {
 						try {
 							sumList.add(sumName);
-							Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+							Map<String, Multiset<Object>> firstOutput = new ConcurrentHashMap<>();
+							Multiset<Object> firstResult = HashMultiset.create();
+							firstOutput.put("*" + sumName, firstResult);
 
-							OutputSumWorker outputSumWorker = new OutputSumWorker(outputData);
-							Future<Multiset<Object>> futureResult = threadPool.submit(outputSumWorker);
+							this.cacheOutput.getOutputBlockingQueue().put(firstOutput);
+//							Platform.runLater(() -> resultList.getItems().add("*" + sumName));
+
+							Future<Multiset<Object>> futureResult = take(selectedItems, sumName);
 							Multiset<Object> result = futureResult.get();
 
 							Map<String, Multiset<Object>> output = new ConcurrentHashMap<>();
 							output.put(sumName, result);
 
-							this.cacheOutput.getOutputBlockingQueue().put(output);
+							if (selectedItems.stream().allMatch(item -> item.charAt(0) != '*')) {
+								this.cacheOutput.getOutputBlockingQueue().put(output);
+							}
 
 							// TODO: Is line below necessary?
 							this.cacheOutput.getOutputMiddleware().getOutputData().put(sumName, result);
-							Platform.runLater(() -> resultList.getItems().add(sumName));
+//							Platform.runLater(() -> resultList.getItems().add(sumName));
 						} catch (InterruptedException | ExecutionException e) {
 							e.printStackTrace();
 						}
@@ -185,7 +192,7 @@ public class OutputView extends VBox {
 		this.sumProgressBar = new ProgressBar();
 		this.lblProgress = new Label("0%");
 
-		this.getChildren().addAll(resultList, btnSingleResult, btnSumResult, sortProgressBar, sumProgressBar, lblProgress);
+		this.getChildren().addAll(resultList, btnSingleResult, btnSumResult);
 
 		Thread thread = new Thread(cacheOutput);
 		thread.start();
@@ -193,16 +200,53 @@ public class OutputView extends VBox {
 //		System.out.println("OutputView init\n");
 	}
 
-	public ImmutableList<Multiset.Entry<Object>> poll(String selectedItem) throws ExecutionException, InterruptedException {
+	public Future<ImmutableList<Multiset.Entry<Object>>> poll(String selectedItem) throws ExecutionException, InterruptedException {
+//		System.out.println("[Poll] - Selected item: " + selectedItem);
+
 		if (selectedItem.charAt(0) != '*') {
 			Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
 			Multiset<Object> result = outputData.get(selectedItem);
 			OutputWorker outputWorker = new OutputWorker(result);
-			Future<ImmutableList<Multiset.Entry<Object>>> futureResult = threadPool.submit(outputWorker);
-			return futureResult.get();
+			return threadPool.submit(outputWorker);
 		}
 
 		return null;
+	}
+
+	volatile boolean run = true;
+
+	public Future<Multiset<Object>> take(ObservableList<String> selectedItems, String sumName) throws ExecutionException, InterruptedException {
+//		List<ImmutableList<Multiset.Entry<Object>>> resultList = new CopyOnWriteArrayList<>();
+//		AtomicInteger cnt = new AtomicInteger(0);
+//
+//		new Thread(() -> {
+//			while (run) {
+//				try {
+//					while (resultList.size() < selectedItems.size()) {
+//						if (selectedItems != null) {
+//							for (String item : selectedItems) {
+//								Future<ImmutableList<Multiset.Entry<Object>>> future = poll(item);
+//
+//								if (future != null) {
+//									resultList.add(future.get());
+//								}
+//							}
+//						}
+//
+//						System.out.println(cnt.incrementAndGet() + " - list size: " + resultList.size() + " < " + selectedItems.size());
+//						Thread.sleep(500);
+//					}
+//
+//					run = false;
+//				} catch (InterruptedException | ExecutionException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}).start();
+
+		Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+		OutputSumWorker outputSumWorker = new OutputSumWorker(outputData);
+		return threadPool.submit(outputSumWorker);
 	}
 
 	private void progressBarTest(int resultSize) {
