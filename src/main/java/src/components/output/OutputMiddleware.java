@@ -17,6 +17,7 @@ public class OutputMiddleware implements Runnable {
 	private BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue;
 	private ListView<String> outputList;
 	private Map<String, Multiset<Object>> outputData;
+	private volatile boolean isWorking;
 
 	public OutputMiddleware(ExecutorService threadPool,
 							BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue,
@@ -25,13 +26,14 @@ public class OutputMiddleware implements Runnable {
 		this.outputBlockingQueue = outputBlockingQueue;
 		this.outputList = outputList;
 		this.outputData = new ConcurrentHashMap<>();
+		this.isWorking = true;
 
 //		System.out.println("OutputMiddleware init\n");
 	}
 
 	@Override
 	public void run() {
-		while (true) {
+		while (isWorking) {
 			try {
 				Map<String, Multiset<Object>> output = outputBlockingQueue.take();
 
@@ -69,9 +71,15 @@ public class OutputMiddleware implements Runnable {
 				e.printStackTrace();
 			}
 		}
+
+		System.out.println("Output Middleware is closed!");
 	}
 
 	public Map<String, Multiset<Object>> getOutputData() {
 		return outputData;
+	}
+
+	public void stop() {
+		this.isWorking = false;
 	}
 }

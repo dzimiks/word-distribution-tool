@@ -32,6 +32,7 @@ public class FileInput implements Runnable {
 		this.seenFiles = new ConcurrentHashMap<>();
 		this.lblIdle = new Label("Idle");
 		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue, lblIdle);
+
 //		System.out.println("FileInput init\n");
 	}
 
@@ -105,6 +106,8 @@ public class FileInput implements Runnable {
 			System.out.println("FileInput -> Waiting " + (Main.FILE_INPUT_SLEEP_TIME / 1000) + " seconds...");
 			Thread.sleep(Main.FILE_INPUT_SLEEP_TIME);
 		}
+
+		System.out.println("File Input is closed!");
 	}
 
 	public List<String> getDirectories() {

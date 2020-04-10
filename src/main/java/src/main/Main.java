@@ -111,17 +111,28 @@ public class Main extends Application {
 			cruncherThreadPool.shutdown();
 			outputThreadPool.shutdown();
 
-			Alert alert = new Alert(Alert.AlertType.NONE);
-			alert.initStyle(StageStyle.UTILITY);
-			alert.setTitle("Info");
-			alert.setHeaderText("Close App");
-			alert.setContentText("Terminating app...");
-			alert.showAndWait();
+			cruncherViews.forEach(cruncher -> cruncher.getCruncher().getCruncherMiddleware().stop());
+			outputViews.forEach(output -> output.getCacheOutput().getOutputMiddleware().stop());
+
+//			Platform.runLater(() -> {
+//				Alert alert = new Alert(Alert.AlertType.NONE);
+//				alert.initStyle(StageStyle.UTILITY);
+//				alert.setTitle("Info");
+//				alert.setHeaderText("Close App");
+//				alert.setContentText("Terminating app...");
+//				alert.showAndWait();
+//			});
 
 			try {
-				inputThreadPool.awaitTermination(5, TimeUnit.SECONDS);
-//				cruncherThreadPool.awaitTermination(5, TimeUnit.SECONDS);
-//				outputThreadPool.awaitTermination(5, TimeUnit.SECONDS);
+				inputThreadPool.awaitTermination(10, TimeUnit.SECONDS);
+				cruncherThreadPool.awaitTermination(10, TimeUnit.SECONDS);
+				outputThreadPool.awaitTermination(10, TimeUnit.SECONDS);
+
+//				fileInputs.forEach(input -> {
+//					System.out.println("CLOSED INPUT");
+//					input.getFileInput().getDirectories().add("STOP");
+//					input.getFileInput().getFileInputMiddleware().stop();
+//				});
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

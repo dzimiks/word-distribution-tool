@@ -131,14 +131,6 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 ## 2 Opis sistema
 
-### 2.1 Input komponente
-
-> kako da konkurentno citamo fajlove sa razlicitih diskova?
-
-> kako da ogranicim ovo? koji thread poll da se koristi?
-> Ako imamo datoteke koje se nalaze na različitim diskovima, onda ih treba čitati konkurentno, ali u jednom trenutku se vrši samo jedno čitanje sa jednog diska.
-> Dakle ni u jednom trenutku ne sme unutar ovog Thread Pool-a da bude aktivno više niti od broja diskova.
-
 ### 2.2 Cruncher komponente
 
 > gde se salje outputu da je zapocet cruncher, posto trenutno saljem sa inputa ka output da je posao spreman za crunching

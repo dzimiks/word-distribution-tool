@@ -35,6 +35,10 @@ public class CounterCruncher implements Runnable {
 		return arity;
 	}
 
+	public CruncherMiddleware getCruncherMiddleware() {
+		return cruncherMiddleware;
+	}
+
 	public BlockingQueue<Map<String, String>> getInputBlockingQueue() {
 		return inputBlockingQueue;
 	}

@@ -21,6 +21,7 @@ public class FileInputMiddleware implements Runnable {
 	private List<CruncherView> cruncherList;
 	private BlockingQueue<String> filePathQueue;
 	private Label lblIdle;
+	private volatile boolean isWorking;
 
 	public FileInputMiddleware(ExecutorService threadPool,
 							   List<CruncherView> cruncherList,
@@ -30,13 +31,14 @@ public class FileInputMiddleware implements Runnable {
 		this.filePathQueue = filePathQueue;
 		this.cruncherList = cruncherList;
 		this.lblIdle = lblIdle;
+		this.isWorking = true;
 
 //		System.out.println("FileInputMiddleware init\n");
 	}
 
 	@Override
 	public void run() {
-		while (true) {
+		while (isWorking) {
 			try {
 				String fileName = filePathQueue.take();
 
@@ -95,6 +97,8 @@ public class FileInputMiddleware implements Runnable {
 
 			}
 		}
+
+		System.out.println("File Input Middleware is closed!");
 	}
 
 	public Label getLblIdle() {
@@ -103,5 +107,9 @@ public class FileInputMiddleware implements Runnable {
 
 	public void setLblIdle(Label lblIdle) {
 		this.lblIdle = lblIdle;
+	}
+
+	public void stop() {
+		this.isWorking = false;
 	}
 }

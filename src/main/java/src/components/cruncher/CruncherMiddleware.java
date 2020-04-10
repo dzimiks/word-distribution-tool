@@ -23,6 +23,7 @@ public class CruncherMiddleware implements Runnable {
 	private BlockingQueue<Map<String, Multiset<Object>>> outputBlockingQueue;
 	private CruncherView cruncherView;
 	private int arity;
+	private volatile boolean isWorking;
 
 	public CruncherMiddleware(ExecutorService threadPool,
 							  CruncherView cruncherView,
@@ -34,13 +35,14 @@ public class CruncherMiddleware implements Runnable {
 		this.arity = arity;
 		this.inputBlockingQueue = inputBlockingQueue;
 		this.outputBlockingQueue = outputBlockingQueue;
+		this.isWorking = true;
 
 //		System.out.println("CruncherMiddleware init\n");
 	}
 
 	@Override
 	public void run() {
-		while (true) {
+		while (isWorking) {
 			try {
 				Map<String, String> input = inputBlockingQueue.take();
 
@@ -124,5 +126,11 @@ public class CruncherMiddleware implements Runnable {
 
 			}
 		}
+
+		System.out.println("Cruncher Middleware is closed!");
+	}
+
+	public void stop() {
+		this.isWorking = false;
 	}
 }
