@@ -1,16 +1,17 @@
 package src.components.output;
 
 import javafx.concurrent.Task;
-import src.main.Main;
 
 import java.math.BigInteger;
 
-public class ProgressBarTask extends Task<BigInteger> {
+public class SumProgressBarTask extends Task<BigInteger> {
 
 	private BigInteger sum;
 	private int resultSize;
+	private OutputView outputView;
 
-	public ProgressBarTask(int resultSize) {
+	public SumProgressBarTask(OutputView outputView, int resultSize) {
+		this.outputView = outputView;
 		this.resultSize = resultSize;
 		this.sum = new BigInteger("0");
 	}
@@ -35,20 +36,27 @@ public class ProgressBarTask extends Task<BigInteger> {
 //			System.out.println("Percent done: " + val);
 //		}
 
-		float percentDone;
+		long percentDone = 0;
 		int max = resultSize;
 		System.out.println("START - Result size: " + resultSize);
 
-		while (resultSize > 0) {
-			float div = 1f * resultSize / Main.SORT_PROGRESS_LIMIT;
-			percentDone = 100 - ((div * 100) / max) * 100;
-			resultSize = (int) div;
-			updateProgress(percentDone, 100f);
-			updateMessage(percentDone + "%");
-			System.out.println("Result size: " + resultSize);
-			System.out.println("Percent done: " + percentDone);
-			Thread.sleep(1000);
+		while (percentDone < 100) {
+			percentDone++;
+			updateProgress(percentDone, 100L);
+			updateMessage("Summing: " + percentDone + "%");
+			Thread.sleep(200);
 		}
+
+//		while (resultSize > 0) {
+//			float div = 1f * resultSize / Main.SORT_PROGRESS_LIMIT;
+//			percentDone = 100 - ((div * 100) / max) * 100;
+//			resultSize = (int) div;
+//			updateProgress(percentDone, 100f);
+//			updateMessage(percentDone + "%");
+//			System.out.println("Result size: " + resultSize);
+//			System.out.println("Percent done: " + percentDone);
+//			Thread.sleep(1000);
+//		}
 
 //		resultSize : 100% = percentDone : x;
 //		percentDone = (x * resultSize) / 100

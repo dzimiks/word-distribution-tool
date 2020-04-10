@@ -35,7 +35,7 @@ public class OutputView extends VBox {
 	private ProgressBar sumProgressBar;
 
 	private Label lblProgress;
-	private ProgressBarTask currentProgressBarTask;
+	private SortProgressBarTask currentProgressBarTask;
 
 	public OutputView(ExecutorService threadPool, Main app) {
 		this.threadPool = threadPool;
@@ -85,8 +85,11 @@ public class OutputView extends VBox {
 				alert.showAndWait();
 			} else {
 				try {
+					Platform.runLater(() -> this.getChildren().addAll(lblProgress, sortProgressBar));
+
 					String selectedItem = selectedItems.get(0);
 					Future<ImmutableList<Multiset.Entry<Object>>> result = poll(selectedItem);
+					sortProgressBar(10);
 
 					if (result != null) {
 						ImmutableList<Multiset.Entry<Object>> output = result.get();
@@ -104,14 +107,12 @@ public class OutputView extends VBox {
 							}
 						}
 
-//						progressBarTest(result.size());
-
 						Platform.runLater(() -> {
 							app.getSeries().getData().clear();
 							app.getSeries().getData().addAll(data);
 							app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
+							this.getChildren().removeAll(lblProgress, sortProgressBar);
 						});
-
 					} else {
 						Alert alert = new Alert(Alert.AlertType.ERROR);
 						alert.initStyle(StageStyle.UTILITY);
@@ -144,6 +145,9 @@ public class OutputView extends VBox {
 					if (!sumList.contains(sumName)) {
 						try {
 							sumList.add(sumName);
+							Platform.runLater(() -> this.getChildren().addAll(lblProgress, sumProgressBar));
+							sumProgressBar(1);
+
 							Map<String, Multiset<Object>> firstOutput = new ConcurrentHashMap<>();
 							Multiset<Object> firstResult = HashMultiset.create();
 							firstOutput.put("*" + sumName, firstResult);
@@ -164,6 +168,7 @@ public class OutputView extends VBox {
 							// TODO: Is line below necessary?
 							this.cacheOutput.getOutputMiddleware().getOutputData().put(sumName, result);
 //							Platform.runLater(() -> resultList.getItems().add(sumName));
+							Platform.runLater(() -> this.getChildren().removeAll(lblProgress, sumProgressBar));
 						} catch (InterruptedException | ExecutionException e) {
 							e.printStackTrace();
 						}
@@ -249,10 +254,26 @@ public class OutputView extends VBox {
 		return threadPool.submit(outputSumWorker);
 	}
 
-	private void progressBarTest(int resultSize) {
-		ProgressBarTask progressBarTask = new ProgressBarTask(resultSize);
+	private void sortProgressBar(int resultSize) {
+		SortProgressBarTask progressBarTask = new SortProgressBarTask(this, resultSize);
 		currentProgressBarTask = progressBarTask;
 		sortProgressBar.progressProperty().bind(progressBarTask.progressProperty());
+		lblProgress.textProperty().bind(progressBarTask.messageProperty());
+
+		EventHandler<WorkerStateEvent> jobDoneEvent = event -> {
+			btnSingleResult.setDisable(false);
+			btnSumResult.setDisable(false);
+		};
+
+		progressBarTask.setOnSucceeded(jobDoneEvent);
+		progressBarTask.setOnCancelled(jobDoneEvent);
+
+		Thread thread = new Thread(progressBarTask);
+		thread.start();
+	}
+
+	private void sumProgressBar(int resultSize) {
+		SumProgressBarTask progressBarTask = new SumProgressBarTask(this, resultSize);
 		sumProgressBar.progressProperty().bind(progressBarTask.progressProperty());
 		lblProgress.textProperty().bind(progressBarTask.messageProperty());
 
@@ -298,5 +319,17 @@ public class OutputView extends VBox {
 
 	public void setCacheOutput(CacheOutput cacheOutput) {
 		this.cacheOutput = cacheOutput;
+	}
+
+	public ProgressBar getSortProgressBar() {
+		return sortProgressBar;
+	}
+
+	public ProgressBar getSumProgressBar() {
+		return sumProgressBar;
+	}
+
+	public Label getLblProgress() {
+		return lblProgress;
 	}
 }
