@@ -89,6 +89,7 @@ public class FileInput implements Runnable {
 								System.out.println("currentTime: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(currentTime)));
 
 								this.seenFiles.put(absolutePath, currentTime);
+								this.filePathQueue.add(absolutePath);
 								System.out.println(">>> File " + fileName + " is replaced!");
 								Platform.runLater(() -> lblIdle.setText("Reading: " + filePath));
 							} else {

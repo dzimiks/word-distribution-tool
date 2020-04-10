@@ -90,6 +90,8 @@ public class FileInputMiddleware implements Runnable {
 
 					System.exit(0);
 				});
+			} catch (RejectedExecutionException ex) {
+
 			}
 		}
 	}

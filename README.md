@@ -195,6 +195,10 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 
 > suma dok se crunchuju
 
+### Scenario 4
+
+> ne valja remove dir
+
 ### Scenario 5
 
 > -Xms500m -Xmx500m treba da obori app
@@ -208,3 +212,5 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > gasenje aplikacije da se sredi i dok radi input - kako da se resi gasenje?
 > jel moze preko shutdown(), pa awaitTermination()
 > i kako da prestanem nakon toga da ubacujem fajlove u crunchera?
+
+> CruncherMiddleware (85) - bug pause/start za crunchera i brisanje procitanih fajlova

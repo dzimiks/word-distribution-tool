@@ -131,7 +131,7 @@ public class OutputView extends VBox {
 						}
 
 						// TODO: Is line below necessary?
-						this.cacheOutput.getOutputMiddleware().getOutputData().putIfAbsent(sumName, result);
+						this.cacheOutput.getOutputMiddleware().getOutputData().put(sumName, result);
 						Platform.runLater(() -> resultList.getItems().add(sumName));
 					} else {
 						Alert alert = new Alert(Alert.AlertType.ERROR);

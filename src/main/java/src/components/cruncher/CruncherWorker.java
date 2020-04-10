@@ -34,8 +34,8 @@ public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>>
 
 	@Override
 	protected Map<String, Multiset<Object>> compute() throws OutOfMemoryError {
-		System.out.println("Start: " + start);
-		System.out.println("End: " + end);
+//		System.out.println("Start: " + start);
+//		System.out.println("End: " + end);
 
 		Map<String, Multiset<Object>> output = new ConcurrentHashMap<>();
 
@@ -96,8 +96,6 @@ public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>>
 		Multiset<Object> multiset = ConcurrentHashMultiset.create();
 		int wordsLength = words.size();
 		List<String> bagOfWords;
-
-		System.out.println("NUMBER OF WORDS: " + wordsLength);
 
 		for (int i = 0; i < wordsLength; i++) {
 			bagOfWords = Lists.newCopyOnWriteArrayList(getBagOfWords(words, wordsLength, i, i + arity));

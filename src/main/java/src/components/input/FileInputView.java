@@ -207,6 +207,7 @@ public class FileInputView extends VBox {
 					for (String directory : whatToRemove) {
 						File rootDir = new File(directory);
 						directoriesList.getItems().remove(directory);
+						fileInput.getDirectories().remove(directory);
 						System.out.println("Directory: " + directory + " is removed!");
 
 						for (File file : Files.fileTraverser().depthFirstPreOrder(rootDir)) {

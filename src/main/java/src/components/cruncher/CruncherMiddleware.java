@@ -1,5 +1,6 @@
 package src.components.cruncher;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import javafx.application.Platform;
@@ -49,10 +50,10 @@ public class CruncherMiddleware implements Runnable {
 					String filePath = parts[parts.length - 1];
 
 					// TODO: Sent to output queue here???
-					Map<String, ImmutableList<Multiset.Entry<Object>>> reserve = new ConcurrentHashMap<>();
-					ImmutableList<Multiset.Entry<Object>> immutableList = ImmutableList.copyOf(new ArrayList<>());
+					Map<String, Multiset<Object>> reserve = new ConcurrentHashMap<>();
+					Multiset<Object> multiset = HashMultiset.create();
 					String fileName = "*" + filePath + "-arity" + arity;
-					reserve.put(fileName, immutableList);
+					reserve.put(fileName, multiset);
 
 					System.out.println("[CruncherMiddleware]: Crunching " + filePath + "...");
 
@@ -60,10 +61,10 @@ public class CruncherMiddleware implements Runnable {
 //					outputBlockingQueue.put(reserve);
 //					System.out.println("[CruncherMiddleware]: Sent file " + fileName + " to the output queue");
 
-					// TODO: Fork Join Pool
+					// TODO: Fork Join Pool - send result future to the output!
 					CruncherWorker cruncherWorker = new CruncherWorker(filePath, entry.getValue(), arity, 0, entry.getValue().length() - 1);
-					Map<String, Multiset<Object>> output = ((ForkJoinPool) threadPool).invoke(cruncherWorker);
-
+					Future<Map<String, Multiset<Object>>> result = ((ForkJoinPool) threadPool).submit(cruncherWorker);
+					Map<String, Multiset<Object>> output = result.get();
 //					OldCruncherWorker cruncherWorker = new OldCruncherWorker(filePath, entry.getValue(), arity);
 //					Future<Map<String, Multiset<Object>>> result = threadPool.submit(cruncherWorker);
 //					Map<String, Multiset<Object>> output = result.get();
@@ -106,10 +107,8 @@ public class CruncherMiddleware implements Runnable {
 //						System.out.println(">>> " + key + " ===> " + out);
 //					}
 				}
-			} catch (InterruptedException e) {
+			} catch (InterruptedException | ExecutionException | OutOfMemoryError e) {
 				e.printStackTrace();
-			} catch (OutOfMemoryError error) {
-				error.printStackTrace();
 
 				Platform.runLater(() -> {
 					Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -121,6 +120,8 @@ public class CruncherMiddleware implements Runnable {
 
 					System.exit(0);
 				});
+			} catch (RejectedExecutionException ex) {
+
 			}
 		}
 	}
