@@ -99,6 +99,13 @@ public class Main extends Application {
 		System.out.println("SORT_PROGRESS_LIMIT: " + SORT_PROGRESS_LIMIT);
 		System.out.println("DISKS: " + Arrays.toString(DISKS));
 
+		Alert alert = new Alert(Alert.AlertType.NONE);
+		alert.initStyle(StageStyle.UTILITY);
+		alert.setTitle("Info");
+		alert.setHeaderText("Close App");
+		alert.setContentText("Terminating app...");
+		stage.setOnHidden(e -> alert.show());
+
 		Scene scene = new Scene(mainView, Constants.SCREEN_SIZE_WIDTH, Constants.SCREEN_SIZE_HEIGHT);
 		stage.setTitle(Constants.PROJECT_NAME);
 		stage.setScene(scene);
@@ -106,6 +113,7 @@ public class Main extends Application {
 
 		stage.setOnCloseRequest(event -> {
 			System.out.println("Closing app...");
+			alert.show();
 
 			inputThreadPool.shutdown();
 			cruncherThreadPool.shutdown();
@@ -113,15 +121,6 @@ public class Main extends Application {
 
 			cruncherViews.forEach(cruncher -> cruncher.getCruncher().getCruncherMiddleware().stop());
 			outputViews.forEach(output -> output.getCacheOutput().getOutputMiddleware().stop());
-
-//			Platform.runLater(() -> {
-//				Alert alert = new Alert(Alert.AlertType.NONE);
-//				alert.initStyle(StageStyle.UTILITY);
-//				alert.setTitle("Info");
-//				alert.setHeaderText("Close App");
-//				alert.setContentText("Terminating app...");
-//				alert.showAndWait();
-//			});
 
 			try {
 				inputThreadPool.awaitTermination(10, TimeUnit.SECONDS);

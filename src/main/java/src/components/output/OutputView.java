@@ -3,6 +3,7 @@ package src.components.output;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
@@ -150,10 +151,10 @@ public class OutputView extends VBox {
 						try {
 							sumList.add(sumName);
 							Platform.runLater(() -> this.getChildren().addAll(lblProgress, sumProgressBar));
-							sumProgressBar(1);
 
 							Map<String, Multiset<Object>> firstOutput = new ConcurrentHashMap<>();
 							Multiset<Object> firstResult = HashMultiset.create();
+							sumProgressBar(firstResult.size());
 							firstOutput.put("*" + sumName, firstResult);
 
 							this.cacheOutput.getOutputBlockingQueue().put(firstOutput);
@@ -171,8 +172,11 @@ public class OutputView extends VBox {
 
 							// TODO: Is line below necessary?
 							this.cacheOutput.getOutputMiddleware().getOutputData().put(sumName, result);
-//							Platform.runLater(() -> resultList.getItems().add(sumName));
-							Platform.runLater(() -> this.getChildren().removeAll(lblProgress, sumProgressBar));
+
+							Platform.runLater(() -> {
+//								resultList.getItems().add(sumName);
+								this.getChildren().removeAll(lblProgress, sumProgressBar);
+							});
 						} catch (InterruptedException | ExecutionException e) {
 							e.printStackTrace();
 						}
@@ -222,38 +226,41 @@ public class OutputView extends VBox {
 		return null;
 	}
 
-	volatile boolean run = true;
-
 	public Future<Multiset<Object>> take(ObservableList<String> selectedItems, String sumName) throws ExecutionException, InterruptedException {
 		List<ImmutableList<Multiset.Entry<Object>>> resultList = new CopyOnWriteArrayList<>();
 		AtomicInteger cnt = new AtomicInteger(0);
 
 		new Thread(() -> {
-			while (run) {
+			while (!this.resultList.getSelectionModel().getSelectedItems().stream().allMatch(item -> item.charAt(0) != '*')) {
+				System.out.println(cnt.incrementAndGet() + " - list size: " + this.resultList.getSelectionModel().getSelectedItems());
+
 				try {
-					while (resultList.size() < selectedItems.size()) {
-						if (selectedItems != null) {
-							for (String item : selectedItems) {
-								Future<ImmutableList<Multiset.Entry<Object>>> future = poll(item);
-
-								if (future != null) {
-									resultList.add(future.get());
-								}
-							}
-						}
-
-						System.out.println(cnt.incrementAndGet() + " - list size: " + resultList.size() + " < " + selectedItems.size());
-						Thread.sleep(500);
-					}
-
-					run = false;
-				} catch (InterruptedException | ExecutionException e) {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
+
+			Platform.runLater(() -> {
+				ObservableList<String> items = this.resultList.getItems();
+				int index = 0;
+
+				for (int i = 0; i < items.size(); i++) {
+					String name = items.get(i);
+
+					if (name.equals("*" + sumName)) {
+						index = i;
+						break;
+					}
+				}
+
+				this.resultList.getItems().remove("*" + sumName);
+				this.resultList.getItems().add(index, sumName);
+			});
 		}).start();
 
 		Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+		System.out.println("outputData: " + outputData);
 		OutputSumWorker outputSumWorker = new OutputSumWorker(outputData);
 		return threadPool.submit(outputSumWorker);
 	}
