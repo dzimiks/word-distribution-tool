@@ -34,9 +34,6 @@ public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>>
 
 	@Override
 	protected Map<String, Multiset<Object>> compute() throws OutOfMemoryError {
-//		System.out.println("Start: " + start);
-//		System.out.println("End: " + end);
-
 		Map<String, Multiset<Object>> output = new ConcurrentHashMap<>();
 
 		if (end - start <= Main.COUNTER_DATA_LIMIT) {
@@ -45,36 +42,36 @@ public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>>
 			return output;
 		}
 
-		int leftEnd = start + Main.COUNTER_DATA_LIMIT;
-		int rightStart;
+		int newEnd = start + Main.COUNTER_DATA_LIMIT;
+		int newStart;
 
-		while (input.charAt(leftEnd) != ' ' && leftEnd > start) {
-			leftEnd--;
+		while (input.charAt(newEnd) != ' ' && newEnd > start) {
+			newEnd--;
 		}
 
-		leftEnd--;
+		newEnd--;
 
 		if (arity == 1) {
-			rightStart = leftEnd + 1;
+			newStart = newEnd + 1;
 		} else {
-			rightStart = leftEnd;
-			int n = arity - 1;
+			newStart = newEnd;
+			int length = arity - 1;
 
-			while (n > 0) {
-				rightStart--;
+			while (length > 0) {
+				newStart--;
 
-				if (input.charAt(rightStart) == ' ' && input.charAt(rightStart + 1) != ' ') {
-					n--;
+				if (input.charAt(newStart) == ' ' && input.charAt(newStart + 1) != ' ') {
+					length--;
 				}
 			}
 		}
 
-		while (input.charAt(rightStart) == ' ') {
-			rightStart++;
+		while (input.charAt(newStart) == ' ') {
+			newStart++;
 		}
 
-		CruncherWorker computeJob = new CruncherWorker(fileName, input, arity, start, leftEnd);
-		CruncherWorker forkJob = new CruncherWorker(fileName, input, arity, rightStart, end);
+		CruncherWorker computeJob = new CruncherWorker(fileName, input, arity, start, newEnd);
+		CruncherWorker forkJob = new CruncherWorker(fileName, input, arity, newStart, end);
 		forkJob.fork();
 
 		Map<String, Multiset<Object>> leftResult = computeJob.compute();

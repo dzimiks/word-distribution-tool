@@ -160,6 +160,7 @@ public class FileInputView extends VBox {
 				if (!whatToRemove.isEmpty()) {
 					for (String cruncher : whatToRemove) {
 						crunchersList.getItems().remove(cruncher);
+						this.getFileInput().getCruncherList().removeIf(cruncherView -> cruncherView.toString().equals(cruncher));
 						System.out.println("Cruncher: " + cruncher + " is removed!");
 					}
 

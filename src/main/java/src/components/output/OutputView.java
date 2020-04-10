@@ -85,17 +85,22 @@ public class OutputView extends VBox {
 				alert.showAndWait();
 			} else {
 				try {
-					Platform.runLater(() -> this.getChildren().addAll(lblProgress, sortProgressBar));
-
 					String selectedItem = selectedItems.get(0);
+
+					Platform.runLater(() -> {
+						this.getChildren().addAll(lblProgress, sortProgressBar);
+						sortProgressBar(this.cacheOutput.getOutputMiddleware().getOutputData().get(selectedItem).size());
+					});
+
 					Future<ImmutableList<Multiset.Entry<Object>>> result = poll(selectedItem);
-					sortProgressBar(10);
 
 					if (result != null) {
 						ImmutableList<Multiset.Entry<Object>> output = result.get();
 
 						List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
 						AtomicInteger counter = new AtomicInteger(0);
+
+						Platform.runLater(() -> this.getChildren().removeAll(lblProgress, sortProgressBar));
 
 						for (int i = 0; i < output.size(); i++) {
 							Multiset.Entry<Object> bow = output.get(i);
@@ -111,7 +116,6 @@ public class OutputView extends VBox {
 							app.getSeries().getData().clear();
 							app.getSeries().getData().addAll(data);
 							app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
-							this.getChildren().removeAll(lblProgress, sortProgressBar);
 						});
 					} else {
 						Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -221,33 +225,33 @@ public class OutputView extends VBox {
 	volatile boolean run = true;
 
 	public Future<Multiset<Object>> take(ObservableList<String> selectedItems, String sumName) throws ExecutionException, InterruptedException {
-//		List<ImmutableList<Multiset.Entry<Object>>> resultList = new CopyOnWriteArrayList<>();
-//		AtomicInteger cnt = new AtomicInteger(0);
-//
-//		new Thread(() -> {
-//			while (run) {
-//				try {
-//					while (resultList.size() < selectedItems.size()) {
-//						if (selectedItems != null) {
-//							for (String item : selectedItems) {
-//								Future<ImmutableList<Multiset.Entry<Object>>> future = poll(item);
-//
-//								if (future != null) {
-//									resultList.add(future.get());
-//								}
-//							}
-//						}
-//
-//						System.out.println(cnt.incrementAndGet() + " - list size: " + resultList.size() + " < " + selectedItems.size());
-//						Thread.sleep(500);
-//					}
-//
-//					run = false;
-//				} catch (InterruptedException | ExecutionException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}).start();
+		List<ImmutableList<Multiset.Entry<Object>>> resultList = new CopyOnWriteArrayList<>();
+		AtomicInteger cnt = new AtomicInteger(0);
+
+		new Thread(() -> {
+			while (run) {
+				try {
+					while (resultList.size() < selectedItems.size()) {
+						if (selectedItems != null) {
+							for (String item : selectedItems) {
+								Future<ImmutableList<Multiset.Entry<Object>>> future = poll(item);
+
+								if (future != null) {
+									resultList.add(future.get());
+								}
+							}
+						}
+
+						System.out.println(cnt.incrementAndGet() + " - list size: " + resultList.size() + " < " + selectedItems.size());
+						Thread.sleep(500);
+					}
+
+					run = false;
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 
 		Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
 		OutputSumWorker outputSumWorker = new OutputSumWorker(outputData);
