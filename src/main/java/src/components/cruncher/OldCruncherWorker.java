@@ -23,7 +23,7 @@ public class OldCruncherWorker implements Callable<Map<String, Multiset<Object>>
 		this.input = input;
 		this.arity = arity;
 
-		System.out.println("OldCruncherWorker init\n");
+//		System.out.println("OldCruncherWorker init\n");
 	}
 
 	@Override

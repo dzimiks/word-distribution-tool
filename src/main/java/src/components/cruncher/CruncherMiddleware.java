@@ -35,7 +35,7 @@ public class CruncherMiddleware implements Runnable {
 		this.inputBlockingQueue = inputBlockingQueue;
 		this.outputBlockingQueue = outputBlockingQueue;
 
-		System.out.println("CruncherMiddleware init\n");
+//		System.out.println("CruncherMiddleware init\n");
 	}
 
 	@Override

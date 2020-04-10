@@ -29,7 +29,7 @@ public class CruncherWorker extends RecursiveTask<Map<String, Multiset<Object>>>
 		this.start = start;
 		this.end = end;
 
-		System.out.println("CruncherWorker init\n");
+//		System.out.println("CruncherWorker init\n");
 	}
 
 	@Override

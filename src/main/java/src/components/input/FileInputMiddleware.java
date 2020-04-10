@@ -30,7 +30,8 @@ public class FileInputMiddleware implements Runnable {
 		this.filePathQueue = filePathQueue;
 		this.cruncherList = cruncherList;
 		this.lblIdle = lblIdle;
-		System.out.println("FileInputMiddleware init\n");
+
+//		System.out.println("FileInputMiddleware init\n");
 	}
 
 	@Override

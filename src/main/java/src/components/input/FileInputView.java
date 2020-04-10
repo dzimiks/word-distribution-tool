@@ -36,7 +36,7 @@ public class FileInputView extends VBox {
 
 		init();
 
-		System.out.println("AddFileInputEvent init\n");
+//		System.out.println("AddFileInputEvent init\n");
 	}
 
 	private void init() {

@@ -214,3 +214,5 @@ kako zavrse posao zovu CountDownLatch i kada sve pozovu CountDownLatch i zavrse 
 > i kako da prestanem nakon toga da ubacujem fajlove u crunchera?
 
 > CruncherMiddleware (85) - bug pause/start za crunchera i brisanje procitanih fajlova
+
+> pauzirati threadove/while loops sve na on close

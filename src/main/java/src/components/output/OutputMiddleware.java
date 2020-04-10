@@ -26,7 +26,7 @@ public class OutputMiddleware implements Runnable {
 		this.outputList = outputList;
 		this.outputData = new ConcurrentHashMap<>();
 
-		System.out.println("OutputMiddleware init\n");
+//		System.out.println("OutputMiddleware init\n");
 	}
 
 	@Override
@@ -41,14 +41,6 @@ public class OutputMiddleware implements Runnable {
 					String filePath = parts[parts.length - 1];
 
 					System.out.println("[Output]: " + filePath);
-
-					// TODO: Thread pool?
-//					Future<?> result = threadPool.submit(this);
-//					System.out.println(result.get());
-
-//					ImmutableList<Multiset.Entry<Object>> result = entry.getValue();
-//					AtomicInteger counter = new AtomicInteger(0);
-//					List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
 
 					// TODO: Put data
 					this.outputData.put(entry.getKey(), entry.getValue());

@@ -32,7 +32,7 @@ public class FileInput implements Runnable {
 		this.seenFiles = new ConcurrentHashMap<>();
 		this.lblIdle = new Label("Idle");
 		this.fileInputMiddleware = new FileInputMiddleware(threadPool, cruncherList, filePathQueue, lblIdle);
-		System.out.println("FileInput init\n");
+//		System.out.println("FileInput init\n");
 	}
 
 	@Override

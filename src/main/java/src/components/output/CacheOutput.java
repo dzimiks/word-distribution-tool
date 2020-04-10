@@ -22,7 +22,7 @@ public class CacheOutput implements Runnable {
 		this.outputBlockingQueue = new LinkedBlockingQueue<>();
 		this.outputMiddleware = new OutputMiddleware(threadPool, outputBlockingQueue, outputList);
 
-		System.out.println("CacheOutput init\n");
+//		System.out.println("CacheOutput init\n");
 	}
 
 	@Override

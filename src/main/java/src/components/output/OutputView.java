@@ -18,9 +18,7 @@ import src.utils.Constants;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class OutputView extends VBox {
@@ -52,52 +50,83 @@ public class OutputView extends VBox {
 		this.resultList.setMaxSize(200, 500);
 		this.resultList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+		this.resultList.setOnMouseClicked(event -> {
+			ObservableList<String> selectedItems = this.resultList.getSelectionModel().getSelectedItems();
+			System.out.println("selectedItems: " + selectedItems);
+
+			if (!selectedItems.isEmpty()) {
+				this.btnSingleResult.setDisable(false);
+
+				if (selectedItems.size() > 1) {
+					this.btnSumResult.setDisable(false);
+				} else {
+					this.btnSumResult.setDisable(true);
+				}
+			} else {
+				this.btnSingleResult.setDisable(true);
+				this.btnSumResult.setDisable(true);
+			}
+		});
+
 		this.sumList = new CopyOnWriteArrayList<>();
 
 		this.btnSingleResult = new Button("Single Result");
+		this.btnSingleResult.setDisable(true);
 
 		this.btnSingleResult.setOnAction(event -> {
-			String selectedItem = this.resultList.getSelectionModel().getSelectedItem();
-			System.out.println("SINGLE RESULT ITEM: " + selectedItem);
+			ObservableList<String> selectedItems = this.resultList.getSelectionModel().getSelectedItems();
+			System.out.println("SINGLE RESULT ITEM: " + selectedItems);
 
-			if (selectedItem.charAt(0) != '*') {
-				Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
-				Multiset<Object> result = outputData.get(selectedItem);
-				List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
-				AtomicInteger counter = new AtomicInteger(0);
-
-				// First 100 results
-				ImmutableList<Multiset.Entry<Object>> fullResult = Multisets.copyHighestCountFirst(result).entrySet().asList();
-				ImmutableList<Multiset.Entry<Object>> finalResult = fullResult.subList(0, Math.min(fullResult.size(), 100));
-
-				for (int i = 0; i < finalResult.size(); i++) {
-					Multiset.Entry<Object> bow = finalResult.get(i);
-					XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
-					data.add(newData);
-
-					if (i < 10) {
-						System.out.println(i + ": " + bow);
-					}
-				}
-
-				progressBarTest(result.size());
-
-				Platform.runLater(() -> {
-					app.getSeries().getData().clear();
-					app.getSeries().getData().addAll(data);
-					app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
-				});
-			} else {
+			if (selectedItems.size() > 1) {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.initStyle(StageStyle.UTILITY);
 				alert.setTitle("Output View Error");
 				alert.setHeaderText("Error");
-				alert.setContentText("This job is not finished!");
+				alert.setContentText("You selected more than one file!");
 				alert.showAndWait();
+			} else {
+				try {
+					String selectedItem = selectedItems.get(0);
+					ImmutableList<Multiset.Entry<Object>> output = poll(selectedItem);
+
+					if (output != null) {
+						List<XYChart.Data<Number, Number>> data = new CopyOnWriteArrayList<>();
+						AtomicInteger counter = new AtomicInteger(0);
+
+						for (int i = 0; i < output.size(); i++) {
+							Multiset.Entry<Object> bow = output.get(i);
+							XYChart.Data<Number, Number> newData = new XYChart.Data<>(counter.getAndIncrement(), bow.getCount());
+							data.add(newData);
+
+							if (i < 10) {
+								System.out.println(i + ": " + bow);
+							}
+						}
+
+//						progressBarTest(result.size());
+
+						Platform.runLater(() -> {
+							app.getSeries().getData().clear();
+							app.getSeries().getData().addAll(data);
+							app.getLineChart().setTitle("Word Distribution Tool - " + selectedItem);
+						});
+
+					} else {
+						Alert alert = new Alert(Alert.AlertType.ERROR);
+						alert.initStyle(StageStyle.UTILITY);
+						alert.setTitle("Output View Error");
+						alert.setHeaderText("Error");
+						alert.setContentText("This job is not finished!");
+						alert.showAndWait();
+					}
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 
 		this.btnSumResult = new Button("Sum Result");
+		this.btnSumResult.setDisable(true);
 
 		this.btnSumResult.setOnAction(event -> {
 			ObservableList<String> selectedItems = resultList.getSelectionModel().getSelectedItems();
@@ -112,27 +141,25 @@ public class OutputView extends VBox {
 					String sumName = textInputDialog.getEditor().getText();
 
 					if (!sumList.contains(sumName)) {
-						sumList.add(sumName);
-						Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
-						Multiset<Object> result = HashMultiset.create();
-
-						for (Map.Entry<String, Multiset<Object>> entry : outputData.entrySet()) {
-							Multiset<Object> curr = entry.getValue();
-							result = Multisets.sum(result, curr);
-						}
-
-						Map<String, Multiset<Object>> output = new ConcurrentHashMap<>();
-						output.put(sumName, result);
-
 						try {
-							cacheOutput.getOutputBlockingQueue().put(output);
-						} catch (InterruptedException e) {
+							sumList.add(sumName);
+							Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+
+							OutputSumWorker outputSumWorker = new OutputSumWorker(outputData);
+							Future<Multiset<Object>> futureResult = threadPool.submit(outputSumWorker);
+							Multiset<Object> result = futureResult.get();
+
+							Map<String, Multiset<Object>> output = new ConcurrentHashMap<>();
+							output.put(sumName, result);
+
+							this.cacheOutput.getOutputBlockingQueue().put(output);
+
+							// TODO: Is line below necessary?
+							this.cacheOutput.getOutputMiddleware().getOutputData().put(sumName, result);
+							Platform.runLater(() -> resultList.getItems().add(sumName));
+						} catch (InterruptedException | ExecutionException e) {
 							e.printStackTrace();
 						}
-
-						// TODO: Is line below necessary?
-						this.cacheOutput.getOutputMiddleware().getOutputData().put(sumName, result);
-						Platform.runLater(() -> resultList.getItems().add(sumName));
 					} else {
 						Alert alert = new Alert(Alert.AlertType.ERROR);
 						alert.initStyle(StageStyle.UTILITY);
@@ -163,7 +190,19 @@ public class OutputView extends VBox {
 		Thread thread = new Thread(cacheOutput);
 		thread.start();
 
-		System.out.println("OutputView init\n");
+//		System.out.println("OutputView init\n");
+	}
+
+	public ImmutableList<Multiset.Entry<Object>> poll(String selectedItem) throws ExecutionException, InterruptedException {
+		if (selectedItem.charAt(0) != '*') {
+			Map<String, Multiset<Object>> outputData = this.cacheOutput.getOutputMiddleware().getOutputData();
+			Multiset<Object> result = outputData.get(selectedItem);
+			OutputWorker outputWorker = new OutputWorker(result);
+			Future<ImmutableList<Multiset.Entry<Object>>> futureResult = threadPool.submit(outputWorker);
+			return futureResult.get();
+		}
+
+		return null;
 	}
 
 	private void progressBarTest(int resultSize) {
